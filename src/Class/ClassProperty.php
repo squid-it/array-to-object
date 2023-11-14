@@ -19,6 +19,7 @@ readonly class ClassProperty
         public bool $hasDefaultValue,
         public mixed $defaultValue,
         public bool $isBuildIn,
+        public bool $allowsNull,
         public ?string $arrayOf
     ) {
     }
