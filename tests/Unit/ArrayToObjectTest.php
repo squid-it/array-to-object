@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SquidIT\Hydrator\Tests\Unit;
 
 use DateTimeImmutable;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use ReflectionEnum;
@@ -227,6 +228,37 @@ class ArrayToObjectTest extends TestCase
     /**
      * @throws UnableToCastPropertyValueException
      */
+    #[DataProvider('castToBoolSucceedsProvider')]
+    public function testCastToBoolSucceeds(mixed $inputValue, bool $expected): void
+    {
+        $reflectionClass    = new ReflectionClass(CarWithDefaultDoors::class);
+        $reflectionProperty = $reflectionClass->getProperty('isInsured');
+
+        /** @var ReflectionNamedType $reflectionPropertyType */
+        $reflectionPropertyType = $reflectionProperty->getType();
+
+        $classProperty = new ClassProperty(
+            $reflectionClass->name,
+            $reflectionProperty->getName(),
+            false,
+            $reflectionPropertyType->getName(),
+            false,
+            false,
+            $reflectionPropertyType->isBuiltin(),
+            $reflectionPropertyType->allowsNull(),
+            null
+        );
+
+        $classInfoGenerator = new ClassInfoGenerator();
+        $arrayToObject      = new ArrayToObject($classInfoGenerator);
+        $value              = $arrayToObject->castValue($inputValue, $classProperty);
+
+        self::assertSame($expected, $value);
+    }
+
+    /**
+     * @throws UnableToCastPropertyValueException
+     */
     public function testCastToDateTimeImmutableSucceeds(): void
     {
         $dateTimeString     = '2023-01-01 12:00:00.48596';
@@ -244,6 +276,7 @@ class ArrayToObjectTest extends TestCase
             false,
             false,
             $reflectionPropertyType->isBuiltin(),
+            $reflectionPropertyType->allowsNull(),
             null
         );
 
@@ -271,6 +304,7 @@ class ArrayToObjectTest extends TestCase
             false,
             false,
             $reflectionPropertyType->isBuiltin(),
+            $reflectionPropertyType->allowsNull(),
             null
         );
 
@@ -315,6 +349,7 @@ class ArrayToObjectTest extends TestCase
             false,
             false,
             $reflectionPropertyType->isBuiltin(),
+            $reflectionPropertyType->allowsNull(),
             null
         );
 
@@ -347,6 +382,7 @@ class ArrayToObjectTest extends TestCase
             false,
             false,
             $reflectionPropertyType->isBuiltin(),
+            $reflectionPropertyType->allowsNull(),
             null
         );
 
@@ -423,5 +459,25 @@ class ArrayToObjectTest extends TestCase
 
         /* @phpstan-ignore-next-line */
         $arrayToObject->hydrateMulti($data, CarComplete::class);
+    }
+
+    /**
+     * @return array<string, array<mixed>>
+     */
+    public static function castToBoolSucceedsProvider(): array
+    {
+        return [
+            'true = true'          => [true, true],
+            '1 = true'             => [1, true],
+            'false = false'        => [false, false],
+            '0 = false'            => [0, false],
+            '"0" = false'          => ['0', false],
+            '"n" = false'          => ['n', false],
+            '"no" = false'         => ['no', false],
+            '"1" = true'           => ['1', true],
+            '"y" = true'           => ['y', true],
+            '"yes" = true'         => ['yes', true],
+            '"randomValue" = true' => ['randomValue', true],
+        ];
     }
 }

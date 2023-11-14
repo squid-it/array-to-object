@@ -169,34 +169,57 @@ abstract class AbstractArrayToObjectHydrator implements ArrayToObjectHydratorInt
      */
     public function castValue(mixed $value, ClassProperty $classProperty): mixed
     {
-        if ($classProperty->type === DateTimeImmutable::class && is_string($value)) {
-            try {
-                $value = new DateTimeImmutable($value);
-            } catch (Throwable $e) {
-                throw new UnableToCastPropertyValueException(sprintf(
-                    'Unable to cast value: "%s" to %s::%s (%s) - %s',
-                    $value,
-                    $classProperty->className,
-                    $classProperty->name,
-                    $classProperty->type,
-                    $e->getMessage()
-                ));
-            }
-        } elseif ($classProperty->isBackedEnum && (is_int($value) || is_string($value))) {
-            try {
-                /** @var BackedEnum $enumName */
-                $enumName = $classProperty->type;
-                $value    = $enumName::from($value);
-            } catch (Throwable $e) {
-                throw new UnableToCastPropertyValueException(sprintf(
-                    'Unable to cast value: "%s" to %s::%s (%s - Backed Enum) - %s',
-                    $value,
-                    $classProperty->className,
-                    $classProperty->name,
-                    $classProperty->type,
-                    $e->getMessage()
-                ));
-            }
+        if ($value === null && $classProperty->allowsNull) {
+            return null;
+        }
+
+        switch ($classProperty->type) {
+            case 'bool':
+                $value = match ($value) {
+                    true, 1 => true, // not merging with default arm for minor speed-up
+                    false, 0, 'false', '0', 'n', 'no' => false,
+                    default => true,
+                };
+
+                break;
+
+            case DateTimeImmutable::class:
+                if (is_string($value)) {
+                    try {
+                        $value = new DateTimeImmutable($value);
+                    } catch (Throwable $e) {
+                        throw new UnableToCastPropertyValueException(sprintf(
+                            'Unable to cast value: "%s" to %s::%s (%s) - %s',
+                            $value,
+                            $classProperty->className,
+                            $classProperty->name,
+                            $classProperty->type,
+                            $e->getMessage()
+                        ));
+                    }
+                }
+
+                break;
+
+            default:
+                if ($classProperty->isBackedEnum && (is_int($value) || is_string($value))) {
+                    try {
+                        /** @var BackedEnum $enumName */
+                        $enumName = $classProperty->type;
+                        $value    = $enumName::from($value);
+                    } catch (Throwable $e) {
+                        throw new UnableToCastPropertyValueException(
+                            sprintf(
+                                'Unable to cast value: "%s" to %s::%s (%s - Backed Enum) - %s',
+                                $value,
+                                $classProperty->className,
+                                $classProperty->name,
+                                $classProperty->type,
+                                $e->getMessage()
+                            )
+                        );
+                    }
+                }
         }
 
         return $value;

@@ -181,6 +181,7 @@ class ClassInfoGeneratorTest extends TestCase
                 false,
                 null,
                 true,
+                false,
                 null,
             ),
         ]);
@@ -194,6 +195,7 @@ class ClassInfoGeneratorTest extends TestCase
                 false,
                 null,
                 true,
+                false,
                 null,
             ),
         ]);

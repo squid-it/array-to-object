@@ -15,6 +15,10 @@ use SquidIT\Hydrator\Attributes\ArrayOf;
 use SquidIT\Hydrator\Exceptions\AmbiguousTypeException;
 use SquidIT\Hydrator\Property\PropertyDefault;
 
+use function class_exists;
+use function implode;
+use function sprintf;
+
 class ClassInfoGenerator
 {
     /** @var array<string, ClassInfo> */
@@ -40,7 +44,7 @@ class ClassInfoGenerator
             $propertyName = $property->getName();
 
             if ($property->hasType() === false) {
-                $msg = \sprintf(
+                $msg = sprintf(
                     'Could not hydrate object: "%s", ambiguous property type: "%s" all object properties need to be typed',
                     $className,
                     $propertyName
@@ -62,11 +66,11 @@ class ClassInfoGenerator
                     $typesList[] = $multiPartType->getName();
                 }
 
-                $msg = \sprintf(
+                $msg = sprintf(
                     'Could not hydrate object: "%s", ambiguous property type: "%s" found for property: "%s"',
                     $className,
                     $propertyName,
-                    \implode('|', $typesList)
+                    implode('|', $typesList)
                 );
 
                 throw new AmbiguousTypeException($msg);
@@ -75,6 +79,7 @@ class ClassInfoGenerator
             /** @var ReflectionNamedType $reflectionType */
             $type            = $reflectionType->getName();
             $isBuildIn       = $reflectionType->isBuiltin();
+            $allowsNull      = $reflectionType->allowsNull();
             $propertyDefault = $this->retrievePropertyDefaultValue($reflectionClass, $property);
             $propertyArrayOf = null;
             $isBackedEnum    = false;
@@ -84,7 +89,7 @@ class ClassInfoGenerator
             }
 
             // Check if property is a "backed" enum
-            if ($isBuildIn === false && \class_exists($type) && (new ReflectionClass($type))->isEnum()) {
+            if ($isBuildIn === false && class_exists($type) && (new ReflectionClass($type))->isEnum()) {
                 $propertyReflectionType = new ReflectionEnum($type);
                 $isBackedEnum           = ($propertyReflectionType->isEnum() && $propertyReflectionType->isBacked());
             }
@@ -97,6 +102,7 @@ class ClassInfoGenerator
                 $propertyDefault->hasDefaultValue,
                 $propertyDefault->defaultValue,
                 $isBuildIn,
+                $allowsNull,
                 $propertyArrayOf
             );
         }
