@@ -175,11 +175,28 @@ abstract class AbstractArrayToObjectHydrator implements ArrayToObjectHydratorInt
 
         switch ($classProperty->type) {
             case 'bool':
-                $value = match ($value) {
-                    true, 1 => true, // not merging with default arm for minor speed-up
-                    false, 0, 'false', '0', 'n', 'no' => false,
-                    default => true,
+                if (is_bool($value)) {
+                    break;
+                }
+
+                $result = match ($value) {
+                    1, 'true', '1', 'y', 'yes' => true,
+                    0, 'false', '0', 'n', 'no' => false,
+                    default => 'unknown',
                 };
+
+                if ($result === 'unknown') {
+                    throw new UnableToCastPropertyValueException(sprintf(
+                        'Unable to cast value: "%s" to %s::%s (%s) - %s',
+                        var_export($value, true),
+                        $classProperty->className,
+                        $classProperty->name,
+                        $classProperty->type,
+                        'only sane boolean conversion allowed'
+                    ));
+                }
+
+                $value = $result;
 
                 break;
 
