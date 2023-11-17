@@ -28,7 +28,7 @@ use function sprintf;
 
 abstract class AbstractArrayToObjectHydrator implements ArrayToObjectHydratorInterface
 {
-    protected ClassInfoGenerator $classPropertyExtractor;
+    protected ClassInfoGenerator $classInfoGenerator;
 
     /** @var array<class-string, Closure> */
     protected array $hydratorClosures;
@@ -36,9 +36,9 @@ abstract class AbstractArrayToObjectHydrator implements ArrayToObjectHydratorInt
     /** @var array<class-string, ReflectionClass> */
     protected array $reflectionClasses = [];
 
-    public function __construct(ClassInfoGenerator $classPropertyExtractor)
+    public function __construct(ClassInfoGenerator $classInfoGenerator)
     {
-        $this->classPropertyExtractor = $classPropertyExtractor;
+        $this->classInfoGenerator = $classInfoGenerator;
     }
 
     /**
@@ -63,7 +63,7 @@ abstract class AbstractArrayToObjectHydrator implements ArrayToObjectHydratorInt
         $hydrateClosure(
             $objectData,
             $object,
-            $this->classPropertyExtractor->getClassInfo($className)
+            $this->classInfoGenerator->getClassInfo($className)
         ); // start hydrating
 
         return $object;

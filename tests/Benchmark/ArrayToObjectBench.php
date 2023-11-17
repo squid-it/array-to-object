@@ -30,8 +30,8 @@ class ArrayToObjectBench
         $data = $this->getTestData();
 
         while ($i > 0) {
-            $classPropertyExtractor = new ClassInfoGenerator();
-            $hydrator               = new ArrayToObject($classPropertyExtractor);
+            $classInfoGenerator = new ClassInfoGenerator();
+            $hydrator           = new ArrayToObject($classInfoGenerator);
 
             $hydrator->hydrate($data, CarComplete::class);
 
@@ -53,8 +53,8 @@ class ArrayToObjectBench
         $i    = 1000;
         $data = $this->getTestData();
 
-        $classPropertyExtractor = new ClassInfoGenerator();
-        $hydrator               = new ArrayToObject($classPropertyExtractor);
+        $classInfoGenerator = new ClassInfoGenerator();
+        $hydrator           = new ArrayToObject($classInfoGenerator);
 
         while ($i > 0) {
             $hydrator->hydrate($data, CarComplete::class);

@@ -21,9 +21,9 @@ class ArrayToObjectHydratorFullTest extends TestCase
      */
     public function testHydratingFullObjectWithNestedElementsSucceeds(): void
     {
-        $data                   = CarArray::regular();
-        $classPropertyExtractor = new ClassInfoGenerator();
-        $hydrator               = new ArrayToObject($classPropertyExtractor);
+        $data               = CarArray::regular();
+        $classInfoGenerator = new ClassInfoGenerator();
+        $hydrator           = new ArrayToObject($classInfoGenerator);
 
         /** @var CarComplete $car */
         $car = $hydrator->hydrate($data, CarComplete::class);
@@ -85,8 +85,8 @@ class ArrayToObjectHydratorFullTest extends TestCase
         $data = CarArray::regular();
         unset($data['countryEntryDate']);
 
-        $classPropertyExtractor = new ClassInfoGenerator();
-        $hydrator               = new ArrayToObject($classPropertyExtractor);
+        $classInfoGenerator = new ClassInfoGenerator();
+        $hydrator           = new ArrayToObject($classInfoGenerator);
 
         /** @var CarCompleteWithNewInConstructor $car */
         $car = $hydrator->hydrate($data, CarCompleteWithNewInConstructor::class);
