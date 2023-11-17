@@ -256,6 +256,45 @@ class ArrayToObjectTest extends TestCase
         self::assertSame($expected, $value);
     }
 
+    public function testCastToBoolThrowsUnableToCastPropertyValueExceptionOnUnknownCastInput(): void
+    {
+        $value              = 'CastThis';
+        $reflectionClass    = new ReflectionClass(CarWithDefaultDoors::class);
+        $reflectionProperty = $reflectionClass->getProperty('isInsured');
+
+        /** @var ReflectionNamedType $reflectionPropertyType */
+        $reflectionPropertyType = $reflectionProperty->getType();
+
+        $classProperty = new ClassProperty(
+            $reflectionClass->name,
+            $reflectionProperty->getName(),
+            false,
+            $reflectionPropertyType->getName(),
+            false,
+            false,
+            $reflectionPropertyType->isBuiltin(),
+            $reflectionPropertyType->allowsNull(),
+            null
+        );
+
+        $exceptionMsg = sprintf(
+            'Unable to cast value: "%s" to %s::%s (%s) - %s',
+            var_export($value, true),
+            $classProperty->className,
+            $classProperty->name,
+            $classProperty->type,
+            'only sane boolean conversion allowed'
+        );
+
+        $this->expectException(UnableToCastPropertyValueException::class);
+        $this->expectExceptionMessage($exceptionMsg);
+
+        $classInfoGenerator = new ClassInfoGenerator();
+        $arrayToObject      = new ArrayToObject($classInfoGenerator);
+
+        $arrayToObject->castValue($value, $classProperty);
+    }
+
     /**
      * @throws UnableToCastPropertyValueException
      */
@@ -467,17 +506,16 @@ class ArrayToObjectTest extends TestCase
     public static function castToBoolSucceedsProvider(): array
     {
         return [
-            'true = true'          => [true, true],
-            '1 = true'             => [1, true],
-            'false = false'        => [false, false],
-            '0 = false'            => [0, false],
-            '"0" = false'          => ['0', false],
-            '"n" = false'          => ['n', false],
-            '"no" = false'         => ['no', false],
-            '"1" = true'           => ['1', true],
-            '"y" = true'           => ['y', true],
-            '"yes" = true'         => ['yes', true],
-            '"randomValue" = true' => ['randomValue', true],
+            'true = true'   => [true, true],
+            '1 = true'      => [1, true],
+            '"1" = true'    => ['1', true],
+            '"y" = true'    => ['y', true],
+            '"yes" = true'  => ['yes', true],
+            'false = false' => [false, false],
+            '0 = false'     => [0, false],
+            '"0" = false'   => ['0', false],
+            '"n" = false'   => ['n', false],
+            '"no" = false'  => ['no', false],
         ];
     }
 }

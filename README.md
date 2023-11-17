@@ -12,8 +12,8 @@ use SquidIT\Hydrator\ArrayToObject;
 use SquidIT\Hydrator\Class\ClassInfoGenerator;
 use SquidIT\Hydrator\Tests\Unit\ExampleObjects\Car\Complete\CarComplete;
 
-$classPropertyExtractor = new ClassInfoGenerator();
-$hydrator               = new ArrayToObject($classPropertyExtractor);
+$classInfoGenerator = new ClassInfoGenerator();
+$hydrator           = new ArrayToObject($classInfoGenerator);
 
 $data = [
     'color'           => 'black',

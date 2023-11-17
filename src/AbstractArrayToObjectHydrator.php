@@ -28,7 +28,7 @@ use function sprintf;
 
 abstract class AbstractArrayToObjectHydrator implements ArrayToObjectHydratorInterface
 {
-    protected ClassInfoGenerator $classPropertyExtractor;
+    protected ClassInfoGenerator $classInfoGenerator;
 
     /** @var array<class-string, Closure> */
     protected array $hydratorClosures;
@@ -36,9 +36,9 @@ abstract class AbstractArrayToObjectHydrator implements ArrayToObjectHydratorInt
     /** @var array<class-string, ReflectionClass> */
     protected array $reflectionClasses = [];
 
-    public function __construct(ClassInfoGenerator $classPropertyExtractor)
+    public function __construct(ClassInfoGenerator $classInfoGenerator)
     {
-        $this->classPropertyExtractor = $classPropertyExtractor;
+        $this->classInfoGenerator = $classInfoGenerator;
     }
 
     /**
@@ -63,7 +63,7 @@ abstract class AbstractArrayToObjectHydrator implements ArrayToObjectHydratorInt
         $hydrateClosure(
             $objectData,
             $object,
-            $this->classPropertyExtractor->getClassInfo($className)
+            $this->classInfoGenerator->getClassInfo($className)
         ); // start hydrating
 
         return $object;
@@ -175,11 +175,28 @@ abstract class AbstractArrayToObjectHydrator implements ArrayToObjectHydratorInt
 
         switch ($classProperty->type) {
             case 'bool':
-                $value = match ($value) {
-                    true, 1 => true, // not merging with default arm for minor speed-up
-                    false, 0, 'false', '0', 'n', 'no' => false,
-                    default => true,
+                if (is_bool($value)) {
+                    break;
+                }
+
+                $result = match ($value) {
+                    1, 'true', '1', 'y', 'yes' => true,
+                    0, 'false', '0', 'n', 'no' => false,
+                    default => 'unknown',
                 };
+
+                if ($result === 'unknown') {
+                    throw new UnableToCastPropertyValueException(sprintf(
+                        'Unable to cast value: "%s" to %s::%s (%s) - %s',
+                        var_export($value, true),
+                        $classProperty->className,
+                        $classProperty->name,
+                        $classProperty->type,
+                        'only sane boolean conversion allowed'
+                    ));
+                }
+
+                $value = $result;
 
                 break;
 

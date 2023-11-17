@@ -15,12 +15,12 @@ class DotNotationArrayToObject extends AbstractArrayToObjectHydrator
     protected DotNotationFormat $dotNotationFormat;
 
     public function __construct(
-        ClassInfoGenerator $classPropertyExtractor,
+        ClassInfoGenerator $classInfoGenerator,
         DotNotationFormat $dotNotationFormat = DotNotationFormat::JAVASCRIPT
     ) {
         $this->dotNotationFormat = $dotNotationFormat;
 
-        parent::__construct($classPropertyExtractor);
+        parent::__construct($classInfoGenerator);
     }
 
     /**
