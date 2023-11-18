@@ -9,7 +9,6 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use ReflectionEnum;
-use ReflectionException;
 use ReflectionNamedType;
 use SquidIT\Hydrator\ArrayToObject;
 use SquidIT\Hydrator\Class\ClassInfoGenerator;
@@ -198,18 +197,16 @@ class ArrayToObjectTest extends TestCase
      */
     public function testHydratingRetainsObjectIndexKeys(): void
     {
-        $key1 = 'new';
-        $key2 = 33;
+        $key1         = 'new';
+        $key2         = 33;
         $key1Original = 0;
         $key2Original = 1;
-        $data = CarArray::regular();
+        $data         = CarArray::regular();
 
         // set specific array keys (reuse existing data)
-        $data['interCoolers'][$key1] = $data['interCoolers'][$key1Original];
-        $data['interCoolers'][$key2] = $data['interCoolers'][$key2Original];
-
-        unset($data['interCoolers'][$key1Original], $data['interCoolers'][$key2Original]);
-
+        $data['interCoolers'][$key1] = $data['interCoolers'][$key1Original]; /** @phpstan-ignore-line */
+        $data['interCoolers'][$key2] = $data['interCoolers'][$key2Original]; /** @phpstan-ignore-line */
+        unset($data['interCoolers'][$key1Original], $data['interCoolers'][$key2Original]); /** @phpstan-ignore-line */
         $classInfoGenerator = new ClassInfoGenerator();
         $arrayToObject      = new ArrayToObject($classInfoGenerator);
 
