@@ -42,8 +42,8 @@ abstract class AbstractArrayToObjectHydrator implements ArrayToObjectHydratorInt
     }
 
     /**
-     * @param array<string, mixed> $objectData
-     * @param class-string         $className
+     * @param array<int|string, mixed> $objectData
+     * @param class-string             $className
      *
      * @throws ReflectionException|TypeError
      * @throws AmbiguousTypeException
@@ -245,7 +245,7 @@ abstract class AbstractArrayToObjectHydrator implements ArrayToObjectHydratorInt
     /**
      * Recursively Hydrate objects and array of objects
      *
-     * @param array<string, mixed> $value
+     * @param array<int|string, mixed> $value
      *
      * @throws ReflectionException
      * @throws AmbiguousTypeException
@@ -266,11 +266,11 @@ abstract class AbstractArrayToObjectHydrator implements ArrayToObjectHydratorInt
             $arrayOfObjects = [];
 
             /** @var array<string, mixed> $arrayItem */
-            foreach ($value as $arrayItem) {
-                $arrayOfObjects[] = $this->createObjectAndHydrate($arrayItem, $classString);
+            foreach ($value as $key => $arrayItem) {
+                // retain index key
+                $arrayOfObjects[$key] = $this->createObjectAndHydrate($arrayItem, $classString);
             }
 
-            // set hydrated objects to our current property value
             $result = $arrayOfObjects;
         }
 
