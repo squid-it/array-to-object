@@ -9,7 +9,6 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use ReflectionEnum;
-use ReflectionException;
 use ReflectionNamedType;
 use SquidIT\Hydrator\ArrayToObject;
 use SquidIT\Hydrator\Class\ClassInfoGenerator;
@@ -30,12 +29,12 @@ use SquidIT\Hydrator\Tests\Unit\ExampleObjects\Car\Speed;
 use SquidIT\Hydrator\Tests\Unit\ExampleObjects\Manufacturer\Employee;
 use SquidIT\Hydrator\Tests\Unit\ExampleObjects\Manufacturer\Ford;
 use SquidIT\Hydrator\Tests\Unit\ExampleObjects\Manufacturer\Honda;
+use Throwable;
 
 class ArrayToObjectTest extends TestCase
 {
     /**
-     * @throws ReflectionException
-     * @throws AmbiguousTypeException
+     * @throws Throwable
      */
     public function testHydrateClassWithConstructorReturnsObjectWithDefaultPhpTypes(): void
     {
@@ -61,8 +60,7 @@ class ArrayToObjectTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
-     * @throws AmbiguousTypeException
+     * @throws Throwable
      */
     public function testHydrateClassWithMissingPropertyDataThrowsException(): void
     {
@@ -90,8 +88,7 @@ class ArrayToObjectTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
-     * @throws AmbiguousTypeException
+     * @throws Throwable
      */
     public function testHydrateClassWithMissingPropertyDataUsesDefaultFromConstructor(): void
     {
@@ -114,8 +111,7 @@ class ArrayToObjectTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
-     * @throws AmbiguousTypeException
+     * @throws Throwable
      */
     public function testHydrateClassWithMissingPropertyDataUsesDefaultFromDefaultProperty(): void
     {
@@ -138,8 +134,7 @@ class ArrayToObjectTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
-     * @throws AmbiguousTypeException
+     * @throws Throwable
      */
     public function testHydratingFullObjectWithNestedElementsSucceeds(): void
     {
@@ -198,8 +193,34 @@ class ArrayToObjectTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
-     * @throws AmbiguousTypeException
+     * @throws Throwable
+     */
+    public function testHydratingRetainsObjectIndexKeys(): void
+    {
+        $key1         = 'new';
+        $key2         = 33;
+        $key1Original = 0;
+        $key2Original = 1;
+        $data         = CarArray::regular();
+
+        // set specific array keys (reuse existing data)
+        $data['interCoolers'][$key1] = $data['interCoolers'][$key1Original]; /** @phpstan-ignore-line */
+        $data['interCoolers'][$key2] = $data['interCoolers'][$key2Original]; /** @phpstan-ignore-line */
+        unset($data['interCoolers'][$key1Original], $data['interCoolers'][$key2Original]); /** @phpstan-ignore-line */
+        $classInfoGenerator = new ClassInfoGenerator();
+        $arrayToObject      = new ArrayToObject($classInfoGenerator);
+
+        /** @var CarComplete $car */
+        $car = $arrayToObject->hydrate($data, CarComplete::class);
+
+        self::assertArrayHasKey($key1, $car->interCoolers);
+        self::assertArrayHasKey($key2, $car->interCoolers);
+        self::assertArrayNotHasKey($key1Original, $car->interCoolers);
+        self::assertArrayNotHasKey($key2Original, $car->interCoolers);
+    }
+
+    /**
+     * @throws Throwable
      */
     public function testHydratingFullObjectWithInitializerInConstructorAsDefaultValueSucceeds(): void
     {
@@ -226,7 +247,7 @@ class ArrayToObjectTest extends TestCase
     // ///////////
 
     /**
-     * @throws UnableToCastPropertyValueException
+     * @throws Throwable
      */
     #[DataProvider('castToBoolSucceedsProvider')]
     public function testCastToBoolSucceeds(mixed $inputValue, bool $expected): void
@@ -296,7 +317,7 @@ class ArrayToObjectTest extends TestCase
     }
 
     /**
-     * @throws UnableToCastPropertyValueException
+     * @throws Throwable
      */
     public function testCastToDateTimeImmutableSucceeds(): void
     {
@@ -366,7 +387,7 @@ class ArrayToObjectTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException|UnableToCastPropertyValueException
+     * @throws Throwable
      */
     public function testCastToEnumSucceeds(): void
     {
@@ -400,7 +421,7 @@ class ArrayToObjectTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
+     * @throws Throwable
      */
     public function testCastToEnumThrowsUnableToCastPropertyValueExceptionOnInvalidBackedEnumValue(): void
     {
@@ -447,7 +468,7 @@ class ArrayToObjectTest extends TestCase
     // /////////
 
     /**
-     * @throws AmbiguousTypeException|ReflectionException
+     * @throws Throwable
      */
     public function testHydratingArrayOfObjectsSucceeds(): void
     {
@@ -469,7 +490,7 @@ class ArrayToObjectTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
+     * @throws Throwable
      */
     public function testHydratingArrayOfObjectsThrowsAmbiguousTypeExceptionOnInvalidArrayOfObjectKey(): void
     {
@@ -485,7 +506,7 @@ class ArrayToObjectTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
+     * @throws Throwable
      */
     public function testHydratingArrayOfObjectsThrowsAmbiguousTypeExceptionOnInvalidArrayOfObjectArray(): void
     {
