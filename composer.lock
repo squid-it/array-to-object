@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0c2fea8529b5bf136475dea906de1440",
+    "content-hash": "fe7ace56c3a4ee78fa47a6c9f21fb348",
     "packages": [],
     "packages-dev": [
         {
@@ -2556,20 +2556,20 @@
         },
         {
             "name": "squidit/php-coding-standards",
-            "version": "v1.0.1",
+            "version": "v1.0.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/squid-it/php-coding-standards.git",
-                "reference": "98a5ef3a05677f6c1c9b76da4c2d21d4f6a59a56"
+                "reference": "cd8479f65801a613ef80593858c8bef67a290d65"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/squid-it/php-coding-standards/zipball/98a5ef3a05677f6c1c9b76da4c2d21d4f6a59a56",
-                "reference": "98a5ef3a05677f6c1c9b76da4c2d21d4f6a59a56",
+                "url": "https://api.github.com/repos/squid-it/php-coding-standards/zipball/cd8479f65801a613ef80593858c8bef67a290d65",
+                "reference": "cd8479f65801a613ef80593858c8bef67a290d65",
                 "shasum": ""
             },
             "require": {
-                "friendsofphp/php-cs-fixer": "^3.15",
+                "friendsofphp/php-cs-fixer": "^v3.38.0",
                 "php": "^8.1"
             },
             "type": "library",
@@ -2577,6 +2577,11 @@
                 "psr-4": {
                     "SquidIT\\PhpCodingStandards\\": "src/"
                 }
+            },
+            "scripts": {
+                "fix": [
+                    "php-cs-fixer fix"
+                ]
             },
             "license": [
                 "MIT"
@@ -2589,10 +2594,10 @@
             ],
             "description": "PHP coding standards rules for PHP-CS-Fixer",
             "support": {
-                "source": "https://github.com/squid-it/php-coding-standards/tree/v1.0.1",
+                "source": "https://github.com/squid-it/php-coding-standards/tree/v1.0.3",
                 "issues": "https://github.com/squid-it/php-coding-standards/issues"
             },
-            "time": "2023-05-24T13:15:14+00:00"
+            "time": "2023-11-18T15:22:24+00:00"
         },
         {
             "name": "symfony/console",

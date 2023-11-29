@@ -57,6 +57,7 @@ abstract class AbstractArrayToObjectHydrator implements ArrayToObjectHydratorInt
             $this->reflectionClasses[$className] = $reflectionClass;
         }
 
+        /** @var object $object */
         $object = $reflectionClass->newInstanceWithoutConstructor();
 
         $hydrateClosure = $this->getHydratorClosure($className);
