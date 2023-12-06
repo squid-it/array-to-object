@@ -30,6 +30,7 @@ use SquidIT\Hydrator\Tests\Unit\ExampleObjects\Manufacturer\Employee;
 use SquidIT\Hydrator\Tests\Unit\ExampleObjects\Manufacturer\Ford;
 use SquidIT\Hydrator\Tests\Unit\ExampleObjects\Manufacturer\Honda;
 use Throwable;
+use UnitEnum;
 
 class ArrayToObjectTest extends TestCase
 {
@@ -131,6 +132,26 @@ class ArrayToObjectTest extends TestCase
         $carWithDefaultDoorsInNonPromotedProperty = $arrayToObject->hydrate($data, CarWithDefaultDoorsInNonPromotedProperty::class);
 
         self::assertSame(4, $carWithDefaultDoorsInNonPromotedProperty->nrOfDoors);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testHydratingPropertyExpectingArrayOfObjectsAcceptsEmptyArray(): void
+    {
+        $data = [
+            'addressLine1' => 'street 1',
+            'addressLine2' => '3011 AA1',
+            'city'         => 'Rotterdam',
+            'employeeList' => [],
+        ];
+
+        $classInfoGenerator = new ClassInfoGenerator();
+        $arrayToObject      = new ArrayToObject($classInfoGenerator);
+
+        /** @var Honda $honda */
+        $honda = $arrayToObject->hydrate($data, Honda::class);
+        self::assertInstanceOf(Honda::class, $honda);
     }
 
     /**
@@ -399,7 +420,10 @@ class ArrayToObjectTest extends TestCase
         /** @var ReflectionNamedType $reflectionPropertyType */
         $reflectionPropertyType = $reflectionProperty->getType();
 
-        $reflectionEnum = new ReflectionEnum($reflectionPropertyType->getName());
+        /** @var class-string<UnitEnum> $enumTypeName */
+        $enumTypeName = $reflectionPropertyType->getName();
+
+        $reflectionEnum = new ReflectionEnum($enumTypeName);
 
         $classProperty = new ClassProperty(
             $reflectionClass->name,
@@ -432,7 +456,10 @@ class ArrayToObjectTest extends TestCase
         /** @var ReflectionNamedType $reflectionPropertyType */
         $reflectionPropertyType = $reflectionProperty->getType();
 
-        $reflectionEnum = new ReflectionEnum($reflectionPropertyType->getName());
+        /** @var class-string<UnitEnum> $enumTypeName */
+        $enumTypeName = $reflectionPropertyType->getName();
+
+        $reflectionEnum = new ReflectionEnum($enumTypeName);
 
         $classProperty = new ClassProperty(
             $reflectionClass->name,

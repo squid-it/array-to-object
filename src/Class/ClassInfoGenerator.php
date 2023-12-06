@@ -15,6 +15,8 @@ use SquidIT\Hydrator\Attributes\ArrayOf;
 use SquidIT\Hydrator\Exceptions\AmbiguousTypeException;
 use SquidIT\Hydrator\Property\PropertyDefault;
 
+use UnitEnum;
+
 use function class_exists;
 use function implode;
 use function sprintf;
@@ -62,6 +64,7 @@ class ClassInfoGenerator
                 $types     = $reflectionType->getTypes();
                 $typesList = [];
 
+                /** @var ReflectionNamedType $multiPartType */
                 foreach ($types as $multiPartType) {
                     $typesList[] = $multiPartType->getName();
                 }
@@ -90,6 +93,7 @@ class ClassInfoGenerator
 
             // Check if property is a "backed" enum
             if ($isBuildIn === false && class_exists($type) && (new ReflectionClass($type))->isEnum()) {
+                /** @var class-string<UnitEnum> $type */
                 $propertyReflectionType = new ReflectionEnum($type);
                 $isBackedEnum           = ($propertyReflectionType->isEnum() && $propertyReflectionType->isBacked());
             }
