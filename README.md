@@ -128,6 +128,6 @@ object(SquidIT\Hydrator\Tests\Unit\ExampleObjects\Car\Complete\CarComplete)#6 (9
   ["extraInfo"]=>
   NULL
   ["isInsured"]=>
-  bool(true)
+  bool(true)   <--- object default property and was not present in our data array
 }
 ```
