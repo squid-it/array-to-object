@@ -1,10 +1,12 @@
 parameters:
 	level: 9
-	checkGenericClassInNonGenericObjectType: false
 	paths:
 		- src
 		- tests
 	ignoreErrors:
-		-
-			message: '#Property [a-zA-Z0-9\\_]+::\$[a-zA-Z0-9]+ is never written, only read.#'
-			path: tests\Unit\ExampleObjects\*
+	    -
+	        identifier: missingType.generics
+
+	    -
+	        message: '#Property [a-zA-Z0-9\\_]+::\$[a-zA-Z0-9]+ is never written, only read.#'
+	        path: tests\Unit\ExampleObjects\*

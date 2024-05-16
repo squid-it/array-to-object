@@ -9,7 +9,11 @@ use SquidIT\Hydrator\Class\ClassInfoGenerator;
 use SquidIT\Hydrator\Exceptions\AmbiguousTypeException;
 use SquidIT\Hydrator\Exceptions\InvalidKeyException;
 use SquidIT\Hydrator\Property\DotNotationFormat;
+use TypeError;
 
+/**
+ * @template T of object
+ */
 class DotNotationArrayToObject extends AbstractArrayToObjectHydrator
 {
     protected DotNotationFormat $dotNotationFormat;
@@ -25,9 +29,11 @@ class DotNotationArrayToObject extends AbstractArrayToObjectHydrator
 
     /**
      * @param array<string, mixed> $objectData
-     * @param class-string         $className
+     * @param class-string<T>      $className
      *
-     * @throws AmbiguousTypeException|InvalidKeyException|ReflectionException
+     * @throws AmbiguousTypeException|InvalidKeyException|ReflectionException|TypeError
+     *
+     * @phpstan-return T
      */
     public function hydrate(array $objectData, string $className): object
     {
@@ -40,23 +46,22 @@ class DotNotationArrayToObject extends AbstractArrayToObjectHydrator
 
     /**
      * @param array<int, array<string, mixed>> $arrayOfObjectData
-     * @param class-string                     $className
+     * @param class-string<T>                  $className
      *
-     * @throws AmbiguousTypeException
-     * @throws ReflectionException
-     * @throws InvalidKeyException
+     * @throws AmbiguousTypeException|InvalidKeyException|ReflectionException|TypeError
      *
-     * @return array<int, array<object>>
+     * @return array<int, T>
      */
     public function hydrateMulti(array $arrayOfObjectData, string $className): array
     {
         $this->checkIfMultiDimensionalArray($arrayOfObjectData, $className);
 
+        $result = [];
+
         foreach ($arrayOfObjectData as $key => $objectData) {
-            $arrayOfObjectData[$key] = $this->hydrate($objectData, $className);
+            $result[$key] = $this->hydrate($objectData, $className);
         }
 
-        /* @phpstan-ignore-next-line - because of Closure usage unable to detect proper return value */
-        return $arrayOfObjectData;
+        return $result;
     }
 }

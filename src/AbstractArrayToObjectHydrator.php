@@ -42,11 +42,15 @@ abstract class AbstractArrayToObjectHydrator implements ArrayToObjectHydratorInt
     }
 
     /**
+     * @template T of object
+     *
      * @param array<int|string, mixed> $objectData
-     * @param class-string             $className
+     * @param class-string<T>          $className
      *
      * @throws ReflectionException|TypeError
      * @throws AmbiguousTypeException
+     *
+     * @phpstan-return T
      */
     protected function createObjectAndHydrate(array $objectData, string $className): object
     {
@@ -57,7 +61,7 @@ abstract class AbstractArrayToObjectHydrator implements ArrayToObjectHydratorInt
             $this->reflectionClasses[$className] = $reflectionClass;
         }
 
-        /** @var object $object */
+        /** @var T $object */
         $object = $reflectionClass->newInstanceWithoutConstructor();
 
         $hydrateClosure = $this->getHydratorClosure($className);
@@ -250,8 +254,10 @@ abstract class AbstractArrayToObjectHydrator implements ArrayToObjectHydratorInt
      *
      * @throws ReflectionException
      * @throws AmbiguousTypeException
+     *
+     * @return array<int|string, mixed>|object
      */
-    public function recursivelyHydrate(array $value, ClassProperty $classProperty): mixed
+    public function recursivelyHydrate(array $value, ClassProperty $classProperty): array|object
     {
         $result = $value;
 
@@ -268,7 +274,7 @@ abstract class AbstractArrayToObjectHydrator implements ArrayToObjectHydratorInt
 
             /** @var array<string, mixed> $arrayItem */
             foreach ($value as $key => $arrayItem) {
-                // retain index key
+                // retain array index key
                 $arrayOfObjects[$key] = $this->createObjectAndHydrate($arrayItem, $classString);
             }
 

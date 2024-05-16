@@ -23,9 +23,9 @@ class DotNotationToMultiDimensional
     private array $dottedArray;
 
     /**
-     * Dot notation formatted array keys with value to multidimensional array
+     * Dot notation formatted array keys with value to a multidimensional array
      *
-     * array key format examples:
+     * Array key format examples:
      * DotNotationFormat::JAVASCRIPT = manufacturer.employeeList[1].employeeName
      * DotNotationFormat::EXPLODE = manufacturer.employeeList.1.employeeName
      *
@@ -83,7 +83,7 @@ class DotNotationToMultiDimensional
             $resultArray = &$resultArray[$key]; /** @phpstan-ignore-line */
         }
 
-        // we have looped through all array keys and $resultArray reference is now pointing to final position in array
+        // we have looped through all array keys and $resultArray reference is now pointing to the final position within the array
         $resultArray = $value;
     }
 }

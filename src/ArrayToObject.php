@@ -8,14 +8,18 @@ use ReflectionException;
 use SquidIT\Hydrator\Exceptions\AmbiguousTypeException;
 use TypeError;
 
+/**
+ * @template T of object
+ */
 class ArrayToObject extends AbstractArrayToObjectHydrator
 {
     /**
      * @param array<string, mixed> $objectData
-     * @param class-string         $className
+     * @param class-string<T>      $className
      *
-     * @throws ReflectionException|TypeError
-     * @throws AmbiguousTypeException
+     * @throws AmbiguousTypeException|ReflectionException|TypeError
+     *
+     * @phpstan-return T
      */
     public function hydrate(array $objectData, string $className): object
     {
@@ -24,22 +28,22 @@ class ArrayToObject extends AbstractArrayToObjectHydrator
 
     /**
      * @param array<int, array<string, mixed>> $arrayOfObjectData
-     * @param class-string                     $className
+     * @param class-string<T>                  $className
      *
-     * @throws AmbiguousTypeException
-     * @throws ReflectionException
+     * @throws AmbiguousTypeException|ReflectionException|TypeError
      *
-     * @return array<int, array<object>>
+     * @return array<int, T>
      */
     public function hydrateMulti(array $arrayOfObjectData, string $className): array
     {
         $this->checkIfMultiDimensionalArray($arrayOfObjectData, $className);
 
+        $result = [];
+
         foreach ($arrayOfObjectData as $key => $objectData) {
-            $arrayOfObjectData[$key] = $this->hydrate($objectData, $className);
+            $result[$key] = $this->hydrate($objectData, $className);
         }
 
-        /* @phpstan-ignore-next-line - because of Closure usage unable to detect proper return value */
-        return $arrayOfObjectData;
+        return $result;
     }
 }

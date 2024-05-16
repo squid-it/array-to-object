@@ -179,7 +179,7 @@ class ArrayToObjectTest extends TestCase
         // default
         self::assertTrue($car->isInsured);
 
-        // object with nested array of objects
+        // object containing a nested array of objects
         /** @var array<string, array<string, string>|string> $manufacturerData */
         $manufacturerData = $data['manufacturer'];
 
