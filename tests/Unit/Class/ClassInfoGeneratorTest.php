@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Class;
+namespace SquidIT\Hydrator\Tests\Unit\Class;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;

@@ -14,22 +14,31 @@ use TypeError;
 interface ArrayToObjectHydratorInterface
 {
     /**
-     * @param array<string, mixed> $objectData
-     * @param class-string<T>      $className
+     * Creates an object from array data by mapping provided array keys to corresponding typed class property names.
+     *
+     * The array keys must match the names of the object properties.
+     *
+     * @param array<string, mixed> $objectData An associative array with keys matching the class property names.
+     * @param class-string<T>      $className  Classname of the object to be created
      *
      * @throws AmbiguousTypeException|ReflectionException|TypeError
      *
-     * @phpstan-return T
+     * @phpstan-return T An instance of the specified class with properties set to the corresponding array values.
      */
     public function hydrate(array $objectData, string $className): object;
 
     /**
+     * Creates an array of objects from an array of array data
+     * Each array entry should contain all the array data for a single object.
+     *
+     * This method works the same as the hydrate() method but excepts an array of array data
+     *
      * @param array<int, array<string, mixed>> $arrayOfObjectData
      * @param class-string<T>                  $className
      *
      * @throws AmbiguousTypeException|ReflectionException
      *
-     * @return array<int, T>
+     * @return array<int, T> An array of object instances of the specified class with properties set to the corresponding array values.
      */
     public function hydrateMulti(array $arrayOfObjectData, string $className): array;
 }

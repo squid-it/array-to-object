@@ -26,6 +26,11 @@ use function is_int;
 use function is_string;
 use function sprintf;
 
+/**
+ * @template T of object
+ *
+ * @template-implements ArrayToObjectHydratorInterface<T>
+ */
 abstract class AbstractArrayToObjectHydrator implements ArrayToObjectHydratorInterface
 {
     protected ClassInfoGenerator $classInfoGenerator;
@@ -42,8 +47,6 @@ abstract class AbstractArrayToObjectHydrator implements ArrayToObjectHydratorInt
     }
 
     /**
-     * @template T of object
-     *
      * @param array<int|string, mixed> $objectData
      * @param class-string<T>          $className
      *
@@ -179,6 +182,13 @@ abstract class AbstractArrayToObjectHydrator implements ArrayToObjectHydratorInt
         }
 
         switch ($classProperty->type) {
+            case 'int':
+                if (is_int($value) === false && filter_var($value, FILTER_VALIDATE_INT) !== false) {
+                    $value = (int) $value;  /** @phpstan-ignore-line cast int string to int */
+                }
+
+                break;
+
             case 'bool':
                 if (is_bool($value)) {
                     break;
@@ -255,7 +265,7 @@ abstract class AbstractArrayToObjectHydrator implements ArrayToObjectHydratorInt
      * @throws ReflectionException
      * @throws AmbiguousTypeException
      *
-     * @return array<int|string, mixed>|object
+     * @phpstan-return array<int|string, mixed>|T
      */
     public function recursivelyHydrate(array $value, ClassProperty $classProperty): array|object
     {
@@ -263,12 +273,12 @@ abstract class AbstractArrayToObjectHydrator implements ArrayToObjectHydratorInt
 
         if ($classProperty->isBuildIn === false) {
             // Single Object
-            /** @var class-string $classString */
+            /** @var class-string<T> $classString */
             $classString = $classProperty->type;
             $result      = $this->createObjectAndHydrate($value, $classString);
         } elseif ($classProperty->arrayOf !== null) {
             // Array of Objects
-            /** @var class-string $classString */
+            /** @var class-string<T> $classString */
             $classString    = $classProperty->arrayOf;
             $arrayOfObjects = [];
 

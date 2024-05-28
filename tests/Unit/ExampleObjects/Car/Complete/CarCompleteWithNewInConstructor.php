@@ -12,8 +12,8 @@ use SquidIT\Hydrator\Tests\Unit\ExampleObjects\Manufacturer\Honda;
 readonly class CarCompleteWithNewInConstructor
 {
     /**
-     * @param string[]                                                                      $passengerList
-     * @param array<int, \SquidIT\Hydrator\Tests\Unit\ExampleObjects\Car\Parts\InterCooler> $interCoolers
+     * @param string[]                $passengerList
+     * @param array<int, InterCooler> $interCoolers
      */
     public function __construct(
         public string $color,

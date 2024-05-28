@@ -340,6 +340,37 @@ class ArrayToObjectTest extends TestCase
     /**
      * @throws Throwable
      */
+    #[DataProvider('castToIntSucceedsProvider')]
+    public function testCastToIntSucceeds(int|string $inputValue, int $expected): void
+    {
+        $reflectionClass    = new ReflectionClass(CarWithDefaultDoors::class);
+        $reflectionProperty = $reflectionClass->getProperty('nrOfDoors');
+
+        /** @var ReflectionNamedType $reflectionPropertyType */
+        $reflectionPropertyType = $reflectionProperty->getType();
+
+        $classProperty = new ClassProperty(
+            $reflectionClass->name,
+            $reflectionProperty->getName(),
+            false,
+            $reflectionPropertyType->getName(),
+            true,
+            3,
+            $reflectionPropertyType->isBuiltin(),
+            $reflectionPropertyType->allowsNull(),
+            null
+        );
+
+        $classInfoGenerator = new ClassInfoGenerator();
+        $arrayToObject      = new ArrayToObject($classInfoGenerator);
+        $value              = $arrayToObject->castValue($inputValue, $classProperty);
+
+        self::assertSame($expected, $value);
+    }
+
+    /**
+     * @throws Throwable
+     */
     public function testCastToDateTimeImmutableSucceeds(): void
     {
         $dateTimeString     = '2023-01-01 12:00:00.48596';
@@ -564,6 +595,22 @@ class ArrayToObjectTest extends TestCase
             '"0" = false'   => ['0', false],
             '"n" = false'   => ['n', false],
             '"no" = false'  => ['no', false],
+        ];
+    }
+
+    /**
+     * @return array<string, array<int|string>>
+     */
+    public static function castToIntSucceedsProvider(): array
+    {
+        return [
+            '"33" = 33'  => ['33', 33],
+            '1 = 1'      => [1, 1],
+            '"-2" = -2'  => ['-2', -2],
+            '"0" = 0'    => ['0', 0],
+            '"-0" = 0'   => ['-0', 0],
+            '0 = 0'      => [0, 0],
+            '"+12" = 12' => ['+12', 12],
         ];
     }
 }

@@ -1,8 +1,10 @@
 # Object Hydrator
 
-Create object from array data using class typed properties to map data to object
+Create an object from array data by mapping provided array keys to corresponding typed class property names.
 
-### usage - manual:
+The array keys must match the names of the object properties.
+
+## Usage - example:
 ```php
 <?php
 
@@ -131,3 +133,91 @@ object(SquidIT\Hydrator\Tests\Unit\ExampleObjects\Car\Complete\CarComplete)#6 (9
   bool(true)   <--- object default property and was not present in our data array
 }
 ```
+
+## Nested objects
+If a class property contains a nested object, the hydrator can infer the object type by reading the property type.
+
+In the example below, the `Car::class` contains a named property `manufacturer` which is of type `Honda::class`.
+When hydrating, we need to provide all data required to create a Honda object.
+
+```php
+class Car
+{
+    public function __construct(
+        public string $color,
+        public Honda $manufacturer,
+    ) {}
+}
+
+$data = [
+    'color'           => 'black',
+    'manufacturer'    => [  // <-- Honda::class
+        'name'         => 'Beautiful Street 124',
+        'city'         => 'Rotterdam',
+        'employeeList' => []
+    ],
+];
+```
+
+## Nested objects: Array of objects
+If a class property contains an array of objects, we need to add a property attribute:  
+`SquidIT\Hydrator\Attributes\ArrayOf([CLASSNAME])`.
+
+In the example below, the `Honda::class` contains a property `employeeList` which should contain an array of 
+`Employee::class` objects.  
+
+By adding the property attribute `SquidIT\Hydrator\Attributes\ArrayOf(Employee::class)` our hydrator knows how to hydrate 
+array data found under the 'employeeList' array key.
+
+```php
+use SquidIT\Hydrator\Attributes\ArrayOf;
+
+class Honda implements ManufacturerInterface
+{
+    /**
+     * @param array<int, Employee> $employeeList
+     */
+    public function __construct(
+        public string $name,
+        public string $city,
+        #[ArrayOf(Employee::class)]
+        public array $employeeList,
+    ) {}
+}
+```
+
+## Type casting/juggling array vales into object properties
+It is important to note that the hydrator will only work on classes that only contain typed properties.
+If a non typed property is found an `SquidIT\Hydrator\Exceptions\AmbiguousTypeException` exception will be thrown.
+
+The hydrator supports casting into the following property types
+
+#### int:
+if a string contains only digits *(plus and minus signs are allowed)*
+
+#### bool:
+The following values will be cast to `true`
+* `1` [int]
+* `'true'` [string]
+* `'1'` [string]
+* `'y'` [string]
+* `'yes'` [string]
+
+The following values will be cast to `false`
+* `0` [int]
+* `'false'` [string]
+* `'0'` [string]
+* `'n'` [string]
+* `'no'` [string]
+
+#### DateTimeImmutable::class:
+Any string value supported by `strtotime()`  
+*please note: as author of this library I feel no need to support the DateTime::class*
+
+#### BackedEnum:
+Any integer of string backed enum value
+
+#### UnionTypes:
+:x: Union types are not supported because we are unable to infer concrete object type implementation.
+
+

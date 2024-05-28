@@ -2,7 +2,11 @@
 
 declare(strict_types=1);
 
+namespace SquidIT\Hydrator\Tests\Unit;
+
+use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
+use ReflectionException;
 use SquidIT\Hydrator\ArrayToObject;
 use SquidIT\Hydrator\Class\ClassInfoGenerator;
 use SquidIT\Hydrator\Exceptions\AmbiguousTypeException;
@@ -40,7 +44,7 @@ class ArrayToObjectHydratorFullTest extends TestCase
         // default
         self::assertTrue($car->isInsured);
 
-        // object with nested array of objects
+        // object containing a nested array of objects
         /** @var array<string, array<string, string>|string> $manufacturerData */
         $manufacturerData = $data['manufacturer'];
 

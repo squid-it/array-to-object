@@ -13,6 +13,8 @@ use TypeError;
 
 /**
  * @template T of object
+ *
+ * @extends AbstractArrayToObjectHydrator<T>
  */
 class DotNotationArrayToObject extends AbstractArrayToObjectHydrator
 {
@@ -28,12 +30,7 @@ class DotNotationArrayToObject extends AbstractArrayToObjectHydrator
     }
 
     /**
-     * @param array<string, mixed> $objectData
-     * @param class-string<T>      $className
-     *
      * @throws AmbiguousTypeException|InvalidKeyException|ReflectionException|TypeError
-     *
-     * @phpstan-return T
      */
     public function hydrate(array $objectData, string $className): object
     {
@@ -45,12 +42,7 @@ class DotNotationArrayToObject extends AbstractArrayToObjectHydrator
     }
 
     /**
-     * @param array<int, array<string, mixed>> $arrayOfObjectData
-     * @param class-string<T>                  $className
-     *
      * @throws AmbiguousTypeException|InvalidKeyException|ReflectionException|TypeError
-     *
-     * @return array<int, T>
      */
     public function hydrateMulti(array $arrayOfObjectData, string $className): array
     {
