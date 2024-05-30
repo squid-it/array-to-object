@@ -26,11 +26,6 @@ use function is_int;
 use function is_string;
 use function sprintf;
 
-/**
- * @template T of object
- *
- * @template-implements ArrayToObjectHydratorInterface<T>
- */
 abstract class AbstractArrayToObjectHydrator implements ArrayToObjectHydratorInterface
 {
     protected ClassInfoGenerator $classInfoGenerator;
@@ -47,6 +42,8 @@ abstract class AbstractArrayToObjectHydrator implements ArrayToObjectHydratorInt
     }
 
     /**
+     * @template T of object
+     *
      * @param array<int|string, mixed> $objectData
      * @param class-string<T>          $className
      *
@@ -265,7 +262,7 @@ abstract class AbstractArrayToObjectHydrator implements ArrayToObjectHydratorInt
      * @throws ReflectionException
      * @throws AmbiguousTypeException
      *
-     * @phpstan-return array<int|string, mixed>|T
+     * @phpstan-return array<int|string, mixed>|object
      */
     public function recursivelyHydrate(array $value, ClassProperty $classProperty): array|object
     {
@@ -273,18 +270,18 @@ abstract class AbstractArrayToObjectHydrator implements ArrayToObjectHydratorInt
 
         if ($classProperty->isBuildIn === false) {
             // Single Object
-            /** @var class-string<T> $classString */
+            /** @var class-string $classString */
             $classString = $classProperty->type;
             $result      = $this->createObjectAndHydrate($value, $classString);
         } elseif ($classProperty->arrayOf !== null) {
             // Array of Objects
-            /** @var class-string<T> $classString */
+            /** @var class-string $classString */
             $classString    = $classProperty->arrayOf;
             $arrayOfObjects = [];
 
             /** @var array<string, mixed> $arrayItem */
             foreach ($value as $key => $arrayItem) {
-                // retain array index key
+                // retain the array index key
                 $arrayOfObjects[$key] = $this->createObjectAndHydrate($arrayItem, $classString);
             }
 

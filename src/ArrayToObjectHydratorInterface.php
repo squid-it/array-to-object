@@ -8,12 +8,11 @@ use ReflectionException;
 use SquidIT\Hydrator\Exceptions\AmbiguousTypeException;
 use TypeError;
 
-/**
- * @template T of object
- */
 interface ArrayToObjectHydratorInterface
 {
     /**
+     * @template T of object
+     *
      * Creates an object from array data by mapping provided array keys to corresponding typed class property names.
      *
      * The array keys must match the names of the object properties.
@@ -28,6 +27,8 @@ interface ArrayToObjectHydratorInterface
     public function hydrate(array $objectData, string $className): object;
 
     /**
+     * @template T of object
+     *
      * Creates an array of objects from an array of array data
      * Each array entry should contain all the array data for a single object.
      *

@@ -11,11 +11,6 @@ use SquidIT\Hydrator\Exceptions\InvalidKeyException;
 use SquidIT\Hydrator\Property\DotNotationFormat;
 use TypeError;
 
-/**
- * @template T of object
- *
- * @extends AbstractArrayToObjectHydrator<T>
- */
 class DotNotationArrayToObject extends AbstractArrayToObjectHydrator
 {
     protected DotNotationFormat $dotNotationFormat;
