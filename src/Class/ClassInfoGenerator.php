@@ -14,7 +14,6 @@ use ReflectionUnionType;
 use SquidIT\Hydrator\Attributes\ArrayOf;
 use SquidIT\Hydrator\Exceptions\AmbiguousTypeException;
 use SquidIT\Hydrator\Property\PropertyDefault;
-
 use UnitEnum;
 
 use function class_exists;
@@ -138,7 +137,7 @@ class ClassInfoGenerator
      */
     private function retrievePropertyDefaultValue(
         ReflectionClass $reflectionClass,
-        ReflectionProperty $reflectionProperty
+        ReflectionProperty $reflectionProperty,
     ): PropertyDefault {
         $hasDefaultValue = false;
         $defaultValue    = null;

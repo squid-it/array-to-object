@@ -13,6 +13,5 @@ readonly class InterCooler
         public int $speedRangeMaxRpm,
         public bool $isWaterCooled,
         public Speed $speedCategory,
-    ) {
-    }
+    ) {}
 }

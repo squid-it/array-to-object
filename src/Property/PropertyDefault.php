@@ -9,6 +9,5 @@ readonly class PropertyDefault
     public function __construct(
         public bool $hasDefaultValue,
         public mixed $defaultValue,
-    ) {
-    }
+    ) {}
 }

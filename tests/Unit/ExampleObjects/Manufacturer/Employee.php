@@ -7,7 +7,6 @@ namespace SquidIT\Hydrator\Tests\Unit\ExampleObjects\Manufacturer;
 readonly class Employee
 {
     public function __construct(
-        public string $employeeName
-    ) {
-    }
+        public string $employeeName,
+    ) {}
 }

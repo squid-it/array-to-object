@@ -11,6 +11,5 @@ class CarWithCreatedDate
     public function __construct(
         public string $color,
         public DateTimeImmutable $createdDate,
-    ) {
-    }
+    ) {}
 }

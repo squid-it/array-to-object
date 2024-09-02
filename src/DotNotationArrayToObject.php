@@ -17,7 +17,7 @@ class DotNotationArrayToObject extends AbstractArrayToObjectHydrator
 
     public function __construct(
         ClassInfoGenerator $classInfoGenerator,
-        DotNotationFormat $dotNotationFormat = DotNotationFormat::JAVASCRIPT
+        DotNotationFormat $dotNotationFormat = DotNotationFormat::JAVASCRIPT,
     ) {
         $this->dotNotationFormat = $dotNotationFormat;
 

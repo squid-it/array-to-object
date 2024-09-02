@@ -19,6 +19,5 @@ readonly class CarWithConstructor
         public array $passengerList,
         public Ford $manufacturer,
         public ?string $extraInfo,
-    ) {
-    }
+    ) {}
 }

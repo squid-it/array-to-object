@@ -16,6 +16,5 @@ readonly class CarSingleTurbo
         public string $color,
         public Nissan $manufacturer,
         public array $turbos,
-    ) {
-    }
+    ) {}
 }

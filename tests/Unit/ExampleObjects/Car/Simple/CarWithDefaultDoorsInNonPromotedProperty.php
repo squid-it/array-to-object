@@ -20,6 +20,5 @@ class CarWithDefaultDoorsInNonPromotedProperty
         public array $passengerList,
         public Ford $manufacturer,
         public ?string $extraInfo,
-    ) {
-    }
+    ) {}
 }

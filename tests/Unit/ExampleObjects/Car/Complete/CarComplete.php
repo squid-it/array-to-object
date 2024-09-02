@@ -26,6 +26,5 @@ readonly class CarComplete
         public DateTimeImmutable $countryEntryDate,
         public ?string $extraInfo,
         public bool $isInsured = true,
-    ) {
-    }
+    ) {}
 }

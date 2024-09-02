@@ -20,6 +20,5 @@ class CarMissingPropertyType
         public array $passengerList,
         public Ford $manufacturer,
         public $extraInfo,
-    ) {
-    }
+    ) {}
 }

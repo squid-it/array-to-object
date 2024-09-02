@@ -16,8 +16,7 @@ class Nissan implements ManufacturerInterface
         public readonly string $addressLine2,
         public readonly string $city,
         public readonly array $employeeList,
-    ) {
-    }
+    ) {}
 
     public function getName(): string
     {

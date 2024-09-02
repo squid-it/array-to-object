@@ -19,6 +19,5 @@ class CarWithUnionType
         public array $passengerList,
         public Ford $manufacturer,
         public float|int $extraInfo,
-    ) {
-    }
+    ) {}
 }

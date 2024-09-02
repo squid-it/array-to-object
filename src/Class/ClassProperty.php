@@ -20,7 +20,6 @@ readonly class ClassProperty
         public mixed $defaultValue,
         public bool $isBuildIn,
         public bool $allowsNull,
-        public ?string $arrayOf
-    ) {
-    }
+        public ?string $arrayOf,
+    ) {}
 }

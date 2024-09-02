@@ -19,8 +19,7 @@ class Honda implements ManufacturerInterface
         public readonly string $city,
         #[ArrayOf(Employee::class)]
         public readonly array $employeeList,
-    ) {
-    }
+    ) {}
 
     public function getName(): string
     {
