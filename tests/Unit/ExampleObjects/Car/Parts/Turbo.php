@@ -9,7 +9,6 @@ readonly class Turbo
     public function __construct(
         public int $speedRangeMinRpm,
         public int $speedRangeMaxRpm,
-        public bool $isWaterCooled
-    ) {
-    }
+        public bool $isWaterCooled,
+    ) {}
 }

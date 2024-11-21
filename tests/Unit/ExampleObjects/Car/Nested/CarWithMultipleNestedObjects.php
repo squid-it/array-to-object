@@ -18,6 +18,5 @@ readonly class CarWithMultipleNestedObjects
         public Honda $manufacturer,
         #[ArrayOf(Turbo::class)]
         public array $turbos,
-    ) {
-    }
+    ) {}
 }

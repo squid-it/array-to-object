@@ -18,6 +18,5 @@ readonly class CarWithMultipleTurbosWithAttributedTurboArray
         public Nissan $manufacturer,
         #[ArrayOf(Turbo::class)]
         public array $turbos,
-    ) {
-    }
+    ) {}
 }

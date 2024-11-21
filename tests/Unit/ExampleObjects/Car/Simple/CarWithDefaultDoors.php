@@ -19,6 +19,5 @@ readonly class CarWithDefaultDoors
         public Ford $manufacturer,
         public ?string $extraInfo,
         public int $nrOfDoors = 3,
-    ) {
-    }
+    ) {}
 }

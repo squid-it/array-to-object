@@ -11,6 +11,5 @@ class CarWithEnumProperty
     public function __construct(
         public string $color,
         public Speed $speed,
-    ) {
-    }
+    ) {}
 }

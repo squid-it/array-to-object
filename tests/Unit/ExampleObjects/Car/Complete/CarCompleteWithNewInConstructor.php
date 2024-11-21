@@ -26,6 +26,5 @@ readonly class CarCompleteWithNewInConstructor
         public ?string $extraInfo,
         public DateTimeImmutable $countryEntryDate = new DateTimeImmutable(),
         public bool $isInsured = true,
-    ) {
-    }
+    ) {}
 }

@@ -6,6 +6,4 @@ namespace SquidIT\Hydrator\Exceptions;
 
 use Exception;
 
-class MissingPropertyValueException extends Exception
-{
-}
+class MissingPropertyValueException extends Exception {}

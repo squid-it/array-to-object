@@ -10,7 +10,6 @@ use Attribute;
 readonly class ArrayOf
 {
     public function __construct(
-        public string $className
-    ) {
-    }
+        public string $className,
+    ) {}
 }

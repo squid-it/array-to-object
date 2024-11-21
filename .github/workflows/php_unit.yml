@@ -14,6 +14,7 @@ jobs:
         php-version:
           - "8.2"
           - "8.3"
+          - "8.4"
         operating-system:
           - "ubuntu-latest"
 
@@ -33,10 +34,11 @@ jobs:
         run: composer validate
 
       - name: "Install dependencies"
-        run: composer install --prefer-dist --no-progress --no-suggest
+        run: composer install --prefer-dist --no-progress
 
       - name: "Run test suite"
         run: composer run-script test
 
       - name: "Check coding standards"
+        if: ${{ matrix.php-version != '8.4' }}
         run: "vendor/bin/php-cs-fixer fix -v --dry-run"
