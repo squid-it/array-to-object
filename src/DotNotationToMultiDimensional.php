@@ -84,6 +84,7 @@ class DotNotationToMultiDimensional
         }
 
         // we have looped through all array keys and $resultArray reference is now pointing to the final position within the array
+        /* @phpstan-ignore parameterByRef.type */
         $resultArray = $value;
     }
 }

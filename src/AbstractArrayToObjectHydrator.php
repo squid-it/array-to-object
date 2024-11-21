@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace SquidIT\Hydrator;
 
-use BackedEnum;
 use Closure;
 use DateTimeImmutable;
 use ReflectionClass;
@@ -233,7 +232,6 @@ abstract class AbstractArrayToObjectHydrator implements ArrayToObjectHydratorInt
             default:
                 if ($classProperty->isBackedEnum && (is_int($value) || is_string($value))) {
                     try {
-                        /** @var BackedEnum $enumName */
                         $enumName = $classProperty->type;
                         $value    = $enumName::from($value);
                     } catch (Throwable $e) {
