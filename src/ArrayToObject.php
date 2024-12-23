@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace SquidIT\Hydrator;
 
+use SquidIT\Hydrator\Abstract\AbstractArrayToObjectHydrator;
+
 class ArrayToObject extends AbstractArrayToObjectHydrator
 {
     public function hydrate(array $objectData, string $className): object

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace SquidIT\Hydrator;
+namespace SquidIT\Hydrator\Abstract;
 
 use Closure;
 use DateTimeImmutable;
@@ -15,9 +15,9 @@ use SquidIT\Hydrator\Class\ClassProperty;
 use SquidIT\Hydrator\Exceptions\AmbiguousTypeException;
 use SquidIT\Hydrator\Exceptions\MissingPropertyValueException;
 use SquidIT\Hydrator\Exceptions\UnableToCastPropertyValueException;
+use SquidIT\Hydrator\Interface\ArrayToObjectHydratorInterface;
 use Throwable;
 use TypeError;
-
 use function array_key_exists;
 use function array_key_first;
 use function is_array;
@@ -30,7 +30,7 @@ abstract class AbstractArrayToObjectHydrator implements ArrayToObjectHydratorInt
     protected ClassInfoGenerator $classInfoGenerator;
 
     /** @var array<class-string, Closure> */
-    protected array $hydratorClosures;
+    protected array $hydratorClosures = [];
 
     /** @var array<class-string, ReflectionClass> */
     protected array $reflectionClasses = [];
