@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace SquidIT\Hydrator;
+namespace SquidIT\Hydrator\Interface;
 
 use ReflectionException;
 use SquidIT\Hydrator\Exceptions\AmbiguousTypeException;

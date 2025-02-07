@@ -16,7 +16,7 @@ use SquidIT\Hydrator\Class\ClassProperty;
 use SquidIT\Hydrator\Exceptions\AmbiguousTypeException;
 use SquidIT\Hydrator\Exceptions\MissingPropertyValueException;
 use SquidIT\Hydrator\Exceptions\UnableToCastPropertyValueException;
-use SquidIT\Hydrator\Tests\Unit\ExampleArrays\CarArray;
+use SquidIT\Hydrator\Tests\Unit\ExampleArrays\CarData;
 use SquidIT\Hydrator\Tests\Unit\ExampleObjects\Car\Complete\CarComplete;
 use SquidIT\Hydrator\Tests\Unit\ExampleObjects\Car\Complete\CarCompleteWithNewInConstructor;
 use SquidIT\Hydrator\Tests\Unit\ExampleObjects\Car\Parts\InterCooler;
@@ -159,7 +159,7 @@ class ArrayToObjectTest extends TestCase
      */
     public function testHydratingFullObjectWithNestedElementsSucceeds(): void
     {
-        $data = CarArray::regular();
+        $data = CarData::regularArray();
 
         $classInfoGenerator = new ClassInfoGenerator();
         $arrayToObject      = new ArrayToObject($classInfoGenerator);
@@ -222,7 +222,7 @@ class ArrayToObjectTest extends TestCase
         $key2         = 33;
         $key1Original = 0;
         $key2Original = 1;
-        $data         = CarArray::regular();
+        $data         = CarData::regularArray();
 
         // set specific array keys (reuse existing data)
         $data['interCoolers'][$key1] = $data['interCoolers'][$key1Original]; /** @phpstan-ignore-line */
@@ -247,7 +247,7 @@ class ArrayToObjectTest extends TestCase
     {
         $currentTime = new DateTimeImmutable();
 
-        $data = CarArray::regular();
+        $data = CarData::regularArray();
         unset($data['countryEntryDate']);
 
         $classInfoGenerator = new ClassInfoGenerator();
@@ -532,9 +532,9 @@ class ArrayToObjectTest extends TestCase
     {
         $specificArrayKey = 36;
         $data             = [
-            CarArray::regular(),
-            $specificArrayKey => CarArray::regular(),
-            CarArray::regular(),
+            CarData::regularArray(),
+            $specificArrayKey => CarData::regularArray(),
+            CarData::regularArray(),
         ];
 
         $classInfoGenerator = new ClassInfoGenerator();
@@ -552,7 +552,7 @@ class ArrayToObjectTest extends TestCase
      */
     public function testHydratingArrayOfObjectsThrowsAmbiguousTypeExceptionOnInvalidArrayOfObjectKey(): void
     {
-        $data = ['test' => CarArray::regular()];
+        $data = ['test' => CarData::regularArray()];
 
         $classInfoGenerator = new ClassInfoGenerator();
         $arrayToObject      = new ArrayToObject($classInfoGenerator);

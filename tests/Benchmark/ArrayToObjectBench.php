@@ -4,27 +4,52 @@ declare(strict_types=1);
 
 namespace SquidIT\Hydrator\Tests\Benchmark;
 
-use PhpBench\Benchmark\Metadata\Annotations\Iterations;
-use PhpBench\Benchmark\Metadata\Annotations\Revs;
-use PhpBench\Benchmark\Metadata\Annotations\Warmup;
+use JsonException;
+use PhpBench\Attributes\BeforeMethods;
+use PhpBench\Attributes\Iterations;
+use PhpBench\Attributes\Revs;
+use PhpBench\Attributes\Warmup;
 use ReflectionException;
 use SquidIT\Hydrator\ArrayToObject;
 use SquidIT\Hydrator\Class\ClassInfoGenerator;
+use SquidIT\Hydrator\DtoToObject;
 use SquidIT\Hydrator\Exceptions\AmbiguousTypeException;
+use SquidIT\Hydrator\Tests\Unit\ExampleArrays\CarData;
 use SquidIT\Hydrator\Tests\Unit\ExampleObjects\Car\Complete\CarComplete;
 
 class ArrayToObjectBench
 {
+    /** @var array<string, mixed> */
+    private array $carDataArray;
+    private object $carDataObject;
+
     /**
-     * @Revs(3)
-     *
-     * @Iterations(3)
-     *
-     * @Warmup(1)
-     *
+     * @throws JsonException
+     */
+    public function setUp(): void
+    {
+        /* @phpstan-ignore assign.propertyType */
+        $this->carDataObject = json_decode(
+            json_encode(CarData::regularArray(), JSON_THROW_ON_ERROR),
+            false,
+            512,
+            JSON_THROW_ON_ERROR
+        );
+
+        /* @phpstan-ignore assign.propertyType */
+        $this->carDataArray = json_decode(
+            json_encode(CarData::regularArray(), JSON_THROW_ON_ERROR),
+            true,
+            512,
+            JSON_THROW_ON_ERROR
+        );
+    }
+
+    /**
      * @throws AmbiguousTypeException|ReflectionException
      */
-    public function benchInstantiateInsideLoop(): void
+    #[Revs(3), Iterations(3), Warmup(1)]
+    public function benchHydrateArrayDataUsingInstantiatedHydratorInsideLoop(): void
     {
         $i    = 1000;
         $data = $this->getTestData();
@@ -40,21 +65,54 @@ class ArrayToObjectBench
     }
 
     /**
-     * @Revs(3)
-     *
-     * @Iterations(3)
-     *
-     * @Warmup(1)
-     *
      * @throws AmbiguousTypeException|ReflectionException
      */
-    public function benchInstantiateOutsideLoopWithCache(): void
+    #[Revs(3), Iterations(3), Warmup(1)]
+    public function benchHydrateArrayDataUsingInstantiatedHydratorOutsideLoopWithCache(): void
     {
         $i    = 1000;
         $data = $this->getTestData();
 
         $classInfoGenerator = new ClassInfoGenerator();
         $hydrator           = new ArrayToObject($classInfoGenerator);
+
+        while ($i > 0) {
+            $hydrator->hydrate($data, CarComplete::class);
+
+            $i--;
+        }
+    }
+
+    /**
+     * @throws AmbiguousTypeException|ReflectionException
+     */
+    #[BeforeMethods('setUp'), Revs(3), Iterations(3), Warmup(1)]
+    public function benchHydrateArrayDataFromJsonUsingInstantiatedHydratorOutsideLoopWithCache(): void
+    {
+        $i    = 1000;
+        $data = $this->carDataArray;
+
+        $classInfoGenerator = new ClassInfoGenerator();
+        $hydrator           = new ArrayToObject($classInfoGenerator);
+
+        while ($i > 0) {
+            $hydrator->hydrate($data, CarComplete::class);
+
+            $i--;
+        }
+    }
+
+    /**
+     * @throws AmbiguousTypeException|ReflectionException
+     */
+    #[BeforeMethods('setUp'), Revs(3), Iterations(3), Warmup(1)]
+    public function benchHydrateObjectDataFromJsonUsingInstantiatedHydratorOutsideLoopWithCache(): void
+    {
+        $i    = 1000;
+        $data = $this->carDataObject;
+
+        $classInfoGenerator = new ClassInfoGenerator();
+        $hydrator           = new DtoToObject($classInfoGenerator);
 
         while ($i > 0) {
             $hydrator->hydrate($data, CarComplete::class);

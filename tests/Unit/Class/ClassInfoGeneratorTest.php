@@ -15,6 +15,7 @@ use SquidIT\Hydrator\Class\ClassInfoGenerator;
 use SquidIT\Hydrator\Class\ClassProperty;
 use SquidIT\Hydrator\Exceptions\AmbiguousTypeException;
 use SquidIT\Hydrator\Tests\Unit\ExampleObjects\Car\Complete\CarComplete;
+use SquidIT\Hydrator\Tests\Unit\ExampleObjects\Car\Complete\CarSmall;
 use SquidIT\Hydrator\Tests\Unit\ExampleObjects\Car\Parts\InterCooler;
 use SquidIT\Hydrator\Tests\Unit\ExampleObjects\Car\Simple\CarMissingPropertyType;
 use SquidIT\Hydrator\Tests\Unit\ExampleObjects\Car\Simple\CarWithConstructor;
@@ -165,6 +166,17 @@ class ClassInfoGeneratorTest extends TestCase
 
         $classInfoGenerator = new ClassInfoGenerator();
         $classInfoGenerator->getClassInfo(CarWithUnionType::class);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testClassWithPromotedEmptyArrayHasADefaultValue(): void
+    {
+        $classInfoGenerator = new ClassInfoGenerator();
+        $classInfo          = $classInfoGenerator->getClassInfo(CarSmall::class);
+
+        self::assertTrue($classInfo->classPropertyList['interCoolers']->hasDefaultValue);
     }
 
     /**

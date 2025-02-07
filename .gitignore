@@ -13,4 +13,5 @@
 /.phpunit.result.cache
 php_errors.log
 .phpunit.cache
+/var
 

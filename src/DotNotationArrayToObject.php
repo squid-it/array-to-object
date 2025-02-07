@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SquidIT\Hydrator;
 
 use ReflectionException;
+use SquidIT\Hydrator\Abstract\AbstractArrayToObjectHydrator;
 use SquidIT\Hydrator\Class\ClassInfoGenerator;
 use SquidIT\Hydrator\Exceptions\AmbiguousTypeException;
 use SquidIT\Hydrator\Exceptions\InvalidKeyException;

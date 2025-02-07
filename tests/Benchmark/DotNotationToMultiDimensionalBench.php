@@ -10,7 +10,7 @@ use PhpBench\Benchmark\Metadata\Annotations\Warmup;
 use SquidIT\Hydrator\DotNotationToMultiDimensional;
 use SquidIT\Hydrator\Exceptions\InvalidKeyException;
 use SquidIT\Hydrator\Property\DotNotationFormat;
-use SquidIT\Hydrator\Tests\Unit\ExampleArrays\CarArray;
+use SquidIT\Hydrator\Tests\Unit\ExampleArrays\CarData;
 
 class DotNotationToMultiDimensionalBench
 {
@@ -25,7 +25,7 @@ class DotNotationToMultiDimensionalBench
      */
     public function benchJavascriptDotNotation(): void
     {
-        $dataInput = CarArray::dottedJavascript();
+        $dataInput = CarData::dottedJavascript();
 
         $dottedToNested = new DotNotationToMultiDimensional($dataInput);
         $dottedToNested->convert();
@@ -42,7 +42,7 @@ class DotNotationToMultiDimensionalBench
      */
     public function benchJavascriptDotNotationX1000(): void
     {
-        $dataInput = CarArray::dottedJavascript();
+        $dataInput = CarData::dottedJavascript();
 
         $i = 1000;
 
@@ -65,7 +65,7 @@ class DotNotationToMultiDimensionalBench
      */
     public function benchExplodeDotNotation(): void
     {
-        $dataInput = CarArray::dottedExplode();
+        $dataInput = CarData::dottedExplode();
 
         $dottedToNested = new DotNotationToMultiDimensional($dataInput, DotNotationFormat::EXPLODE);
         $dottedToNested->convert();
@@ -82,7 +82,7 @@ class DotNotationToMultiDimensionalBench
      */
     public function benchExplodeDotNotationX1000(): void
     {
-        $dataInput = CarArray::dottedExplode();
+        $dataInput = CarData::dottedExplode();
 
         $i = 1000;
 
