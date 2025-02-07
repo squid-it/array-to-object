@@ -8,11 +8,19 @@ use SquidIT\Hydrator\Tests\Unit\ExampleObjects\Car\Parts\InterCooler;
 
 readonly class CarSmall
 {
+    public string $color;
+
+    /** @var InterCooler[] */
+    public array $interCoolers;
+
     /**
      * @param array<int, InterCooler> $interCoolers
      */
     public function __construct(
-        public string $color,
-        public array $interCoolers = [],
-    ) {}
+        string $color,
+        array $interCoolers = [],
+    ) {
+        $this->color        = $color;
+        $this->interCoolers = $interCoolers;
+    }
 }
