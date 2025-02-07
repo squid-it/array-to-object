@@ -221,3 +221,9 @@ Any integer of string backed enum value
 :x: Union types are not supported because we are unable to infer concrete object type implementation.
 
 
+### Update v1.* => V2.*
+Interface change
+
+Adjust all references:
+* From: \SquidIT\Hydrator\ArrayToObjectHydratorInterface
+* To: \SquidIT\Hydrator\Interface\ArrayToObjectHydratorInterface
