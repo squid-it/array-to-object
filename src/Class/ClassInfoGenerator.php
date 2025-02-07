@@ -32,7 +32,7 @@ class ClassInfoGenerator
      * @throws ReflectionException
      * @throws AmbiguousTypeException
      */
-    public function getClassInfo(string $className): ClassInfo
+    public function getClassInfo(string $className, bool $allowNonPromotedPropertyDefaults = true): ClassInfo
     {
         if (isset($this->classInfoList[$className])) {
             return $this->classInfoList[$className];
@@ -83,7 +83,7 @@ class ClassInfoGenerator
             $type            = $reflectionType->getName();
             $isBuildIn       = $reflectionType->isBuiltin();
             $allowsNull      = $reflectionType->allowsNull();
-            $propertyDefault = $this->retrievePropertyDefaultValue($reflectionClass, $property);
+            $propertyDefault = $this->retrievePropertyDefaultValue($reflectionClass, $property, $allowNonPromotedPropertyDefaults);
             $propertyArrayOf = null;
             $isBackedEnum    = false;
 
@@ -144,6 +144,7 @@ class ClassInfoGenerator
     private function retrievePropertyDefaultValue(
         ReflectionClass $reflectionClass,
         ReflectionProperty $reflectionProperty,
+        bool $allowNonPromotedPropertyDefaults,
     ): PropertyDefault {
         $hasDefaultValue = false;
         $defaultValue    = null;
@@ -170,7 +171,7 @@ class ClassInfoGenerator
 
                 if (
                     $promotedProperty !== null
-                    && $promotedProperty->isPromoted()
+                    && ($promotedProperty->isPromoted() || $allowNonPromotedPropertyDefaults)
                     && $promotedProperty->isDefaultValueAvailable()
                 ) {
                     $hasDefaultValue = true;
