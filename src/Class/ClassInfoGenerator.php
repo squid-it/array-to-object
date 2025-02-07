@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SquidIT\Hydrator\Class;
 
+use DateTimeInterface;
 use ReflectionClass;
 use ReflectionEnum;
 use ReflectionException;
@@ -95,6 +96,11 @@ class ClassInfoGenerator
                 /** @var class-string<UnitEnum> $type */
                 $propertyReflectionType = new ReflectionEnum($type);
                 $isBackedEnum           = ($propertyReflectionType->isEnum() && $propertyReflectionType->isBacked());
+            }
+
+            // Set buildIn property to true for datetime objects
+            if ($isBuildIn === false && is_a($type, DateTimeInterface::class, true)) {
+                $isBuildIn = true;
             }
 
             $result[$propertyName] = new ClassProperty(

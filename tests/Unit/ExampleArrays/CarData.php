@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace SquidIT\Hydrator\Tests\Unit\ExampleArrays;
 
-class CarArray
+use JsonException;
+
+class CarData
 {
     /**
      * @return array<string, mixed>
      */
-    public static function regular(): array
+    public static function regularArray(): array
     {
         return [
             'color'           => 'black',
@@ -42,6 +44,20 @@ class CarArray
             'countryEntryDate' => '2015-06-01 13:45:01',
             'extraInfo'        => null,
         ];
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public static function regularObject(): object
+    {
+        /* @phpstan-ignore return.type */
+        return json_decode(
+            json_encode(self::regularArray(), JSON_THROW_ON_ERROR),
+            false,
+            512,
+            JSON_THROW_ON_ERROR
+        );
     }
 
     /**

@@ -9,7 +9,7 @@ use PHPUnit\Framework\TestCase;
 use SquidIT\Hydrator\DotNotationToMultiDimensional;
 use SquidIT\Hydrator\Exceptions\InvalidKeyException;
 use SquidIT\Hydrator\Property\DotNotationFormat;
-use SquidIT\Hydrator\Tests\Unit\ExampleArrays\CarArray;
+use SquidIT\Hydrator\Tests\Unit\ExampleArrays\CarData;
 
 class DotNotationToMultiDimensionalTest extends TestCase
 {
@@ -18,8 +18,8 @@ class DotNotationToMultiDimensionalTest extends TestCase
      */
     public function testJavascriptNotationConvertSucceeds(): void
     {
-        $dataExpected = CarArray::regular();
-        $dataInput    = CarArray::dottedJavascript();
+        $dataExpected = CarData::regularArray();
+        $dataInput    = CarData::dottedJavascript();
 
         $dottedToNested = new DotNotationToMultiDimensional($dataInput);
         $result         = $dottedToNested->convert();
@@ -32,8 +32,8 @@ class DotNotationToMultiDimensionalTest extends TestCase
      */
     public function testExplodeNotationConvertSucceeds(): void
     {
-        $dataExpected = CarArray::regular();
-        $dataInput    = CarArray::dottedExplode();
+        $dataExpected = CarData::regularArray();
+        $dataInput    = CarData::dottedExplode();
 
         $dottedToNested = new DotNotationToMultiDimensional($dataInput, DotNotationFormat::EXPLODE);
         $result         = $dottedToNested->convert();
@@ -46,13 +46,13 @@ class DotNotationToMultiDimensionalTest extends TestCase
      */
     public function testConvertingArrayOfConvertSucceeds(): void
     {
-        $dataExpected = [CarArray::regular(), CarArray::regular()];
+        $dataExpected = [CarData::regularArray(), CarData::regularArray()];
         $dataInput    = [];
 
         $loop = 0;
 
         while ($loop < 2) {
-            foreach (CarArray::dottedJavascript() as $key => $value) {
+            foreach (CarData::dottedJavascript() as $key => $value) {
                 $dataInput[sprintf('[%s].%s', $loop, $key)] = $value;
             }
 

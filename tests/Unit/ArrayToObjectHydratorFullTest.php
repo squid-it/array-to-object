@@ -10,7 +10,7 @@ use ReflectionException;
 use SquidIT\Hydrator\ArrayToObject;
 use SquidIT\Hydrator\Class\ClassInfoGenerator;
 use SquidIT\Hydrator\Exceptions\AmbiguousTypeException;
-use SquidIT\Hydrator\Tests\Unit\ExampleArrays\CarArray;
+use SquidIT\Hydrator\Tests\Unit\ExampleArrays\CarData;
 use SquidIT\Hydrator\Tests\Unit\ExampleObjects\Car\Complete\CarComplete;
 use SquidIT\Hydrator\Tests\Unit\ExampleObjects\Car\Complete\CarCompleteWithNewInConstructor;
 use SquidIT\Hydrator\Tests\Unit\ExampleObjects\Car\Parts\InterCooler;
@@ -25,7 +25,7 @@ class ArrayToObjectHydratorFullTest extends TestCase
      */
     public function testHydratingFullObjectWithNestedElementsSucceeds(): void
     {
-        $data               = CarArray::regular();
+        $data               = CarData::regularArray();
         $classInfoGenerator = new ClassInfoGenerator();
         $hydrator           = new ArrayToObject($classInfoGenerator);
 
@@ -86,7 +86,7 @@ class ArrayToObjectHydratorFullTest extends TestCase
     {
         $currentTime = new DateTimeImmutable();
 
-        $data = CarArray::regular();
+        $data = CarData::regularArray();
         unset($data['countryEntryDate']);
 
         $classInfoGenerator = new ClassInfoGenerator();

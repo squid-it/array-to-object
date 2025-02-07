@@ -11,7 +11,7 @@ use SquidIT\Hydrator\DotNotationArrayToObject;
 use SquidIT\Hydrator\Exceptions\AmbiguousTypeException;
 use SquidIT\Hydrator\Exceptions\InvalidKeyException;
 use SquidIT\Hydrator\Property\DotNotationFormat;
-use SquidIT\Hydrator\Tests\Unit\ExampleArrays\CarArray;
+use SquidIT\Hydrator\Tests\Unit\ExampleArrays\CarData;
 use SquidIT\Hydrator\Tests\Unit\ExampleObjects\Car\Complete\CarComplete;
 
 class DotNotationArrayToObjectTest extends TestCase
@@ -24,9 +24,9 @@ class DotNotationArrayToObjectTest extends TestCase
     {
         $specificArrayKey = 36;
         $data             = [
-            CarArray::dottedJavascript(),
-            $specificArrayKey => CarArray::dottedJavascript(),
-            CarArray::dottedJavascript(),
+            CarData::dottedJavascript(),
+            $specificArrayKey => CarData::dottedJavascript(),
+            CarData::dottedJavascript(),
         ];
 
         $classInfoGenerator = new ClassInfoGenerator();
