@@ -38,6 +38,8 @@ jobs:
           ./configure
           make
           sudo make install
+          cd ..
+          rm -rf simdjson_php
 
       - name: "Enable simdjson php extension"
         run: |
