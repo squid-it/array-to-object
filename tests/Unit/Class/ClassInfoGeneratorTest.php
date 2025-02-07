@@ -174,7 +174,7 @@ class ClassInfoGeneratorTest extends TestCase
     public function testClassWithPromotedEmptyArrayHasADefaultValue(): void
     {
         $classInfoGenerator = new ClassInfoGenerator();
-        $classInfo = $classInfoGenerator->getClassInfo(CarSmall::class);
+        $classInfo          = $classInfoGenerator->getClassInfo(CarSmall::class);
 
         self::assertTrue($classInfo->classPropertyList['interCoolers']->hasDefaultValue);
     }

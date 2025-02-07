@@ -107,29 +107,6 @@ class ArrayVsObjectToObjectBench
         }
     }
 
-    /**
-     * @throws AmbiguousTypeException|ReflectionException
-     * @throws JsonException
-     */
-    #[Revs(3), Iterations(3), Warmup(1)]
-    public function benchHydrateArrayDataFromJsonStringSingleSimdJsonDecode(): void
-    {
-        $i    = 1;
-        $data = $this->getTestData();
-
-        /** @var array<string, mixed> $hydrationData */
-        $hydrationData      = simdjson_decode($data, true, 512);
-        $validationData     = simdjson_decode($data, false, 512);
-        $classInfoGenerator = new ClassInfoGenerator();
-        $hydrator           = new ArrayToObject($classInfoGenerator);
-
-        while ($i > 0) {
-            $hydrator->hydrate($hydrationData, CarComplete::class);
-
-            $i--;
-        }
-    }
-
     private function getTestData(): string
     {
         return '{
