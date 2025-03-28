@@ -14,6 +14,7 @@ use ReflectionProperty;
 use ReflectionUnionType;
 use SquidIT\Hydrator\Attributes\ArrayOf;
 use SquidIT\Hydrator\Exceptions\AmbiguousTypeException;
+use SquidIT\Hydrator\Interface\ObjectValidatorInterface;
 use SquidIT\Hydrator\Property\PropertyDefault;
 use UnitEnum;
 
@@ -112,11 +113,15 @@ class ClassInfoGenerator
                 $propertyDefault->defaultValue,
                 $isBuildIn,
                 $allowsNull,
-                $propertyArrayOf
+                $propertyArrayOf,
             );
         }
 
-        $classInfo = new ClassInfo($className, $result);
+        $classInfo = new ClassInfo(
+            $className,
+            $result,
+            is_a($className, ObjectValidatorInterface::class, true)
+        );
 
         // store result for future requests;
         $this->classInfoList[$className] = $classInfo;

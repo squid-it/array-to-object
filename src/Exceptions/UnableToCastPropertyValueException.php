@@ -6,4 +6,4 @@ namespace SquidIT\Hydrator\Exceptions;
 
 use Exception;
 
-class UnableToCastPropertyValueException extends Exception {}
+class UnableToCastPropertyValueException extends ObjectHydratorException {}

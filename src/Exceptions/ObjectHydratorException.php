@@ -6,4 +6,4 @@ namespace SquidIT\Hydrator\Exceptions;
 
 use Exception;
 
-class AmbiguousTypeException extends ObjectHydratorException {}
+class ObjectHydratorException extends Exception {}

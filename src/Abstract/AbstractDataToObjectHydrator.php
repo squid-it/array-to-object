@@ -11,8 +11,12 @@ use ReflectionException;
 use SquidIT\Hydrator\Class\ClassInfoGenerator;
 use SquidIT\Hydrator\Class\ClassProperty;
 use SquidIT\Hydrator\Exceptions\AmbiguousTypeException;
+use SquidIT\Hydrator\Exceptions\MissingPropertyValueException;
+use SquidIT\Hydrator\Exceptions\PropertyPathBuilder;
 use SquidIT\Hydrator\Exceptions\UnableToCastPropertyValueException;
+use SquidIT\Hydrator\Exceptions\ValidationFailureException;
 use SquidIT\Hydrator\Interface\HydratorClosureInterface;
+use SquidIT\Hydrator\Interface\ObjectValidatorInterface;
 use Throwable;
 use TypeError;
 
@@ -45,14 +49,20 @@ abstract class AbstractDataToObjectHydrator implements HydratorClosureInterface
      *
      * @param array<int|string, mixed>|object $objectData
      * @param class-string<T>                 $className
+     * @param array<string, int|null>         $objectPath
      *
      * @throws ReflectionException|TypeError
      * @throws AmbiguousTypeException
+     * @throws MissingPropertyValueException|UnableToCastPropertyValueException
+     * @throws ValidationFailureException
      *
      * @phpstan-return T
      */
-    protected function createObjectAndHydrate(array|object $objectData, string $className): object
-    {
+    protected function createObjectAndHydrate(
+        array|object $objectData,
+        string $className,
+        array $objectPath = [],
+    ): object {
         if (isset($this->reflectionClasses[$className])) {
             $reflectionClass = $this->reflectionClasses[$className];
         } else {
@@ -63,12 +73,19 @@ abstract class AbstractDataToObjectHydrator implements HydratorClosureInterface
         /** @var T $object */
         $object = $reflectionClass->newInstanceWithoutConstructor();
 
+        $classInfo      = $this->classInfoGenerator->getClassInfo($className);
         $hydrateClosure = $this->getHydratorClosure($className);
         $hydrateClosure(
             $objectData,
             $object,
-            $this->classInfoGenerator->getClassInfo($className)
+            $classInfo,
+            $objectPath,
         ); // start hydrating
+
+        if ($classInfo->hasValidator) {
+            /** @var ObjectValidatorInterface&T $object */
+            $object->validate($objectPath);
+        }
 
         return $object;
     }
@@ -88,9 +105,11 @@ abstract class AbstractDataToObjectHydrator implements HydratorClosureInterface
     }
 
     /**
+     * @param array<string, int|null> $objectPath
+     *
      * @throws UnableToCastPropertyValueException
      */
-    public function castValue(mixed $value, ClassProperty $classProperty): mixed
+    public function castValue(mixed $value, ClassProperty $classProperty, array $objectPath = []): mixed
     {
         if ($value === null && $classProperty->allowsNull) {
             return null;
@@ -117,10 +136,9 @@ abstract class AbstractDataToObjectHydrator implements HydratorClosureInterface
 
                 if ($result === 'unknown') {
                     throw new UnableToCastPropertyValueException(sprintf(
-                        'Unable to cast value: "%s" to %s::%s (%s) - %s',
+                        'Unable to cast value: "%s" into %s (%s) - %s',
                         var_export($value, true),
-                        $classProperty->className,
-                        $classProperty->name,
+                        PropertyPathBuilder::build($objectPath, $classProperty->name),
                         $classProperty->type,
                         'only sane boolean conversion allowed'
                     ));
@@ -136,10 +154,9 @@ abstract class AbstractDataToObjectHydrator implements HydratorClosureInterface
                         $value = new DateTimeImmutable($value);
                     } catch (Throwable $e) {
                         throw new UnableToCastPropertyValueException(sprintf(
-                            'Unable to cast value: "%s" to %s::%s (%s) - %s',
+                            'Unable to cast value: "%s" into %s (%s) - %s',
                             $value,
-                            $classProperty->className,
-                            $classProperty->name,
+                            PropertyPathBuilder::build($objectPath, $classProperty->name),
                             $classProperty->type,
                             $e->getMessage()
                         ));
@@ -156,10 +173,9 @@ abstract class AbstractDataToObjectHydrator implements HydratorClosureInterface
                     } catch (Throwable $e) {
                         throw new UnableToCastPropertyValueException(
                             sprintf(
-                                'Unable to cast value: "%s" to %s::%s (%s - Backed Enum) - %s',
+                                'Unable to cast value: "%s" into %s (%s - Backed Enum) - %s',
                                 $value,
-                                $classProperty->className,
-                                $classProperty->name,
+                                PropertyPathBuilder::build($objectPath, $classProperty->name),
                                 $classProperty->type,
                                 $e->getMessage()
                             )
@@ -175,31 +191,40 @@ abstract class AbstractDataToObjectHydrator implements HydratorClosureInterface
      * Recursively Hydrate objects and array of objects
      *
      * @param array<int|string, mixed>|object $value
+     * @param array<string, int|null>         $objectPath
      *
-     * @throws ReflectionException
+     * @throws ReflectionException|TypeError
      * @throws AmbiguousTypeException
+     * @throws MissingPropertyValueException|UnableToCastPropertyValueException
      *
      * @phpstan-return array<int|string, mixed>|object
      */
-    public function recursivelyHydrate(array|object $value, ClassProperty $classProperty): array|object
-    {
+    public function recursivelyHydrate(
+        array|object $value,
+        ClassProperty $classProperty,
+        array $objectPath,
+    ): array|object {
         $result = $value;
 
         if ($classProperty->isBuildIn === false) {
             // Single Object
             /** @var class-string $classString */
             $classString = $classProperty->type;
-            $result      = $this->createObjectAndHydrate($value, $classString);
+            $result      = $this->createObjectAndHydrate($value, $classString, $objectPath);
         } elseif ($classProperty->arrayOf !== null && is_array($value) === true) {
             // Array of Objects
             /** @var class-string $classString */
             $classString    = $classProperty->arrayOf;
             $arrayOfObjects = [];
 
-            /** @var array<string, mixed> $arrayItem */
+            /**
+             * @var array<string, mixed> $arrayItem
+             * @var int                  $key
+             */
             foreach ($value as $key => $arrayItem) {
+                $objectPath[array_key_last($objectPath)] = $key;
                 // retain the array index key
-                $arrayOfObjects[$key] = $this->createObjectAndHydrate($arrayItem, $classString);
+                $arrayOfObjects[$key] = $this->createObjectAndHydrate($arrayItem, $classString, $objectPath);
             }
 
             $result = $arrayOfObjects;
