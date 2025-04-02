@@ -17,9 +17,11 @@ use SquidIT\Hydrator\Exceptions\AmbiguousTypeException;
 use SquidIT\Hydrator\Exceptions\MissingPropertyValueException;
 use SquidIT\Hydrator\Exceptions\PropertyPathBuilder;
 use SquidIT\Hydrator\Exceptions\UnableToCastPropertyValueException;
+use SquidIT\Hydrator\Exceptions\ValidationFailureException;
 use SquidIT\Hydrator\Tests\Unit\ExampleArrays\CarData;
 use SquidIT\Hydrator\Tests\Unit\ExampleObjects\Car\Complete\CarComplete;
 use SquidIT\Hydrator\Tests\Unit\ExampleObjects\Car\Complete\CarCompleteWithNewInConstructor;
+use SquidIT\Hydrator\Tests\Unit\ExampleObjects\Car\Complete\CarWithCustomEngine;
 use SquidIT\Hydrator\Tests\Unit\ExampleObjects\Car\Parts\InterCooler;
 use SquidIT\Hydrator\Tests\Unit\ExampleObjects\Car\Simple\CarWithConstructor;
 use SquidIT\Hydrator\Tests\Unit\ExampleObjects\Car\Simple\CarWithCreatedDate;
@@ -536,6 +538,24 @@ class ArrayToObjectTest extends TestCase
 
         /* @phpstan-ignore-next-line */
         $this->arrayToObject->hydrateMulti($data, CarComplete::class);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testHydratingObjectThrowsValidationFailureExceptionWhenObjectExtendingObjectValidatorFailsCheck(): void
+    {
+        $displacementValueOk = 600;
+        $dataOke             = ['engineDisplacementInCc' => $displacementValueOk];
+        $dataBad             = ['engineDisplacementInCc' => 10000];
+
+        $CarWithCustomEngine = $this->arrayToObject->hydrate($dataOke, CarWithCustomEngine::class);
+        self::assertSame($displacementValueOk, $CarWithCustomEngine->engineDisplacementInCc);
+
+        $this->expectException(ValidationFailureException::class);
+        $this->expectExceptionMessage('Invalid value received for property: engineDisplacementInCc, value needs to be between 600 and 8000');
+
+        $this->arrayToObject->hydrate($dataBad, CarWithCustomEngine::class);
     }
 
     /**
