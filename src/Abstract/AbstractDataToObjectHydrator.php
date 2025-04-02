@@ -196,6 +196,7 @@ abstract class AbstractDataToObjectHydrator implements HydratorClosureInterface
      * @throws ReflectionException|TypeError
      * @throws AmbiguousTypeException
      * @throws MissingPropertyValueException|UnableToCastPropertyValueException
+     * @throws ValidationFailureException
      *
      * @phpstan-return array<int|string, mixed>|object
      */
@@ -214,15 +215,16 @@ abstract class AbstractDataToObjectHydrator implements HydratorClosureInterface
         } elseif ($classProperty->arrayOf !== null && is_array($value) === true) {
             // Array of Objects
             /** @var class-string $classString */
-            $classString    = $classProperty->arrayOf;
-            $arrayOfObjects = [];
+            $classString       = $classProperty->arrayOf;
+            $arrayOfObjects    = [];
+            $lastObjectPathKey = array_key_last($objectPath);
 
             /**
              * @var array<string, mixed> $arrayItem
              * @var int                  $key
              */
             foreach ($value as $key => $arrayItem) {
-                $objectPath[array_key_last($objectPath)] = $key;
+                $objectPath[$lastObjectPathKey] = $key;
                 // retain the array index key
                 $arrayOfObjects[$key] = $this->createObjectAndHydrate($arrayItem, $classString, $objectPath);
             }
