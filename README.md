@@ -4,7 +4,7 @@ Create an object from array data by mapping provided array keys to corresponding
 
 The array keys must match the names of the object properties.
 
-## Usage - example:
+## Usage - example (multi dimensional array):
 ```php
 <?php
 
@@ -50,6 +50,72 @@ $data = [
 ];
 
 $carComplete = $hydrator->hydrate($data, CarComplete::class);
+
+var_dump($carComplete);
+
+```
+
+## Usage - example (array dot notation):
+```php
+<?php
+
+declare(strict_types=1);
+
+use SquidIT\Hydrator\Class\ClassInfoGenerator;
+use SquidIT\Hydrator\DotNotationArrayToObject;
+use SquidIT\Hydrator\Property\DotNotationFormat;
+use SquidIT\Hydrator\Tests\Unit\ExampleObjects\Car\Complete\CarComplete;
+
+$classInfoGenerator = new ClassInfoGenerator();
+$hydratorJavaScript = new DotNotationArrayToObject($classInfoGenerator, DotNotationFormat::JAVASCRIPT);
+$hydratorExplode    = new DotNotationArrayToObject($classInfoGenerator, DotNotationFormat::EXPLODE);
+
+$dataDotNotationJavascript = [
+    'color'                                     => 'black',
+    'nrOfDoors'                                 => 4,
+    'mileagePerLiter'                           => 16.3,
+    'passengerList'                             => ['melvin', 'bert'],
+    'manufacturer.addressLine1'                 => 'Beautiful Street 123',
+    'manufacturer.addressLine2'                 => 'Apartment 1234',
+    'manufacturer.city'                         => 'Rotterdam',
+    'manufacturer.employeeList[0].employeeName' => 'cecil',
+    'manufacturer.employeeList[1].employeeName' => 'melvin',
+    'interCoolers[0].speedRangeMinRpm'          => 200,
+    'interCoolers[0].speedRangeMaxRpm'          => 2160,
+    'interCoolers[0].isWaterCooled'             => true,
+    'interCoolers[0].speedCategory'             => 'fast',
+    'interCoolers[1].speedRangeMinRpm'          => 100,
+    'interCoolers[1].speedRangeMaxRpm'          => 2200,
+    'interCoolers[1].isWaterCooled'             => false,
+    'interCoolers[1].speedCategory'             => 'slow',
+    'countryEntryDate'                          => '2015-06-01 13:45:01',
+    'extraInfo'                                 => null,
+];
+
+$dataDotNotationExplode = [
+    'color'                                    => 'black',
+    'nrOfDoors'                                => 4,
+    'mileagePerLiter'                          => 16.3,
+    'passengerList'                            => ['melvin', 'bert'],
+    'manufacturer.addressLine1'                => 'Beautiful Street 123',
+    'manufacturer.addressLine2'                => 'Apartment 1234',
+    'manufacturer.city'                        => 'Rotterdam',
+    'manufacturer.employeeList.0.employeeName' => 'cecil',
+    'manufacturer.employeeList.1.employeeName' => 'melvin',
+    'interCoolers.0.speedRangeMinRpm'          => 200,
+    'interCoolers.0.speedRangeMaxRpm'          => 2160,
+    'interCoolers.0.isWaterCooled'             => true,
+    'interCoolers.0.speedCategory'             => 'fast',
+    'interCoolers.1.speedRangeMinRpm'          => 100,
+    'interCoolers.1.speedRangeMaxRpm'          => 2200,
+    'interCoolers.1.isWaterCooled'             => false,
+    'interCoolers.1.speedCategory'             => 'slow',
+    'countryEntryDate'                         => '2015-06-01 13:45:01',
+    'extraInfo'                                => null,
+];
+
+$carComplete = $hydratorJavaScript->hydrate($dataDotNotationJavascript, CarComplete::class);
+$carComplete = $hydratorExplode->hydrate($dataDotNotationExplode, CarComplete::class);
 
 var_dump($carComplete);
 
@@ -167,7 +233,7 @@ In the example below, the `Honda::class` contains a property `employeeList` whic
 `Employee::class` objects.  
 
 By adding the property attribute `SquidIT\Hydrator\Attributes\ArrayOf(Employee::class)` our hydrator knows how to hydrate 
-array data found under the 'employeeList' array key.
+array data found under the 'employeeList' object property.
 
 ```php
 use SquidIT\Hydrator\Attributes\ArrayOf;

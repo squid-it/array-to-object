@@ -39,6 +39,7 @@ class ClassInfoGeneratorTest extends TestCase
         $classInfoGenerator->setClassInfo($className, $classInfo);
 
         self::assertSame($classInfo, $classInfoGenerator->getClassInfo($className));
+        self::assertFalse($classInfo->hasValidator);
     }
 
     /**

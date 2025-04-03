@@ -9,8 +9,10 @@ use SquidIT\Hydrator\Abstract\AbstractArrayToObjectHydrator;
 use SquidIT\Hydrator\Class\ClassInfoGenerator;
 use SquidIT\Hydrator\Exceptions\AmbiguousTypeException;
 use SquidIT\Hydrator\Exceptions\InvalidKeyException;
+use SquidIT\Hydrator\Exceptions\MissingPropertyValueException;
+use SquidIT\Hydrator\Exceptions\UnableToCastPropertyValueException;
+use SquidIT\Hydrator\Exceptions\ValidationFailureException;
 use SquidIT\Hydrator\Property\DotNotationFormat;
-use TypeError;
 
 class DotNotationArrayToObject extends AbstractArrayToObjectHydrator
 {
@@ -26,7 +28,12 @@ class DotNotationArrayToObject extends AbstractArrayToObjectHydrator
     }
 
     /**
-     * @throws AmbiguousTypeException|InvalidKeyException|ReflectionException|TypeError
+     * @throws AmbiguousTypeException
+     * @throws MissingPropertyValueException
+     * @throws UnableToCastPropertyValueException
+     * @throws ValidationFailureException
+     * @throws InvalidKeyException
+     * @throws ReflectionException
      */
     public function hydrate(array $objectData, string $className): object
     {
@@ -38,7 +45,12 @@ class DotNotationArrayToObject extends AbstractArrayToObjectHydrator
     }
 
     /**
-     * @throws AmbiguousTypeException|InvalidKeyException|ReflectionException|TypeError
+     * @throws AmbiguousTypeException
+     * @throws InvalidKeyException
+     * @throws MissingPropertyValueException
+     * @throws ReflectionException
+     * @throws UnableToCastPropertyValueException
+     * @throws ValidationFailureException
      */
     public function hydrateMulti(array $arrayOfObjectData, string $className): array
     {

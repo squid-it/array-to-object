@@ -15,10 +15,13 @@ use SquidIT\Hydrator\Class\ClassInfoGenerator;
 use SquidIT\Hydrator\Class\ClassProperty;
 use SquidIT\Hydrator\Exceptions\AmbiguousTypeException;
 use SquidIT\Hydrator\Exceptions\MissingPropertyValueException;
+use SquidIT\Hydrator\Exceptions\PropertyPathBuilder;
 use SquidIT\Hydrator\Exceptions\UnableToCastPropertyValueException;
+use SquidIT\Hydrator\Exceptions\ValidationFailureException;
 use SquidIT\Hydrator\Tests\Unit\ExampleArrays\CarData;
 use SquidIT\Hydrator\Tests\Unit\ExampleObjects\Car\Complete\CarComplete;
 use SquidIT\Hydrator\Tests\Unit\ExampleObjects\Car\Complete\CarCompleteWithNewInConstructor;
+use SquidIT\Hydrator\Tests\Unit\ExampleObjects\Car\Complete\CarWithCustomEngine;
 use SquidIT\Hydrator\Tests\Unit\ExampleObjects\Car\Parts\InterCooler;
 use SquidIT\Hydrator\Tests\Unit\ExampleObjects\Car\Simple\CarWithConstructor;
 use SquidIT\Hydrator\Tests\Unit\ExampleObjects\Car\Simple\CarWithCreatedDate;
@@ -34,6 +37,14 @@ use UnitEnum;
 
 class ArrayToObjectTest extends TestCase
 {
+    private ArrayToObject $arrayToObject;
+
+    protected function setUp(): void
+    {
+        $classInfoGenerator  = new ClassInfoGenerator();
+        $this->arrayToObject = new ArrayToObject($classInfoGenerator);
+    }
+
     /**
      * @throws Throwable
      */
@@ -49,11 +60,8 @@ class ArrayToObjectTest extends TestCase
             'extraInfo'       => null,
         ];
 
-        $classInfoGenerator = new ClassInfoGenerator();
-        $arrayToObject      = new ArrayToObject($classInfoGenerator);
-
         /** @var CarWithConstructor $simpleCar */
-        $simpleCar = $arrayToObject->hydrate($data, CarWithConstructor::class);
+        $simpleCar = $this->arrayToObject->hydrate($data, CarWithConstructor::class);
 
         foreach ($data as $propertyName => $propertyValue) {
             self::assertSame($propertyValue, $simpleCar->{$propertyName});
@@ -67,7 +75,7 @@ class ArrayToObjectTest extends TestCase
     {
         $exceptionMsg = sprintf(
             'Could not hydrate object: "%s", no property data provided for: "%s"',
-            CarWithConstructor::class,
+            (new ReflectionClass(CarWithConstructor::class))->getShortName(),
             'nrOfDoors'
         );
         $data = [
@@ -82,10 +90,7 @@ class ArrayToObjectTest extends TestCase
         $this->expectException(MissingPropertyValueException::class);
         $this->expectExceptionMessage($exceptionMsg);
 
-        $classInfoGenerator = new ClassInfoGenerator();
-        $arrayToObject      = new ArrayToObject($classInfoGenerator);
-
-        $arrayToObject->hydrate($data, CarWithConstructor::class);
+        $this->arrayToObject->hydrate($data, CarWithConstructor::class);
     }
 
     /**
@@ -102,11 +107,8 @@ class ArrayToObjectTest extends TestCase
             'extraInfo'       => null,
         ];
 
-        $classInfoGenerator = new ClassInfoGenerator();
-        $arrayToObject      = new ArrayToObject($classInfoGenerator);
-
         /** @var CarWithDefaultDoors $carWithDefaultNrOfDoors */
-        $carWithDefaultNrOfDoors = $arrayToObject->hydrate($data, CarWithDefaultDoors::class);
+        $carWithDefaultNrOfDoors = $this->arrayToObject->hydrate($data, CarWithDefaultDoors::class);
 
         self::assertSame(3, $carWithDefaultNrOfDoors->nrOfDoors);
     }
@@ -125,11 +127,8 @@ class ArrayToObjectTest extends TestCase
             'extraInfo'       => null,
         ];
 
-        $classInfoGenerator = new ClassInfoGenerator();
-        $arrayToObject      = new ArrayToObject($classInfoGenerator);
-
         /** @var CarWithDefaultDoorsInNonPromotedProperty $carWithDefaultDoorsInNonPromotedProperty */
-        $carWithDefaultDoorsInNonPromotedProperty = $arrayToObject->hydrate($data, CarWithDefaultDoorsInNonPromotedProperty::class);
+        $carWithDefaultDoorsInNonPromotedProperty = $this->arrayToObject->hydrate($data, CarWithDefaultDoorsInNonPromotedProperty::class);
 
         self::assertSame(4, $carWithDefaultDoorsInNonPromotedProperty->nrOfDoors);
     }
@@ -146,11 +145,8 @@ class ArrayToObjectTest extends TestCase
             'employeeList' => [],
         ];
 
-        $classInfoGenerator = new ClassInfoGenerator();
-        $arrayToObject      = new ArrayToObject($classInfoGenerator);
-
         /** @var Honda $honda */
-        $honda = $arrayToObject->hydrate($data, Honda::class);
+        $honda = $this->arrayToObject->hydrate($data, Honda::class);
         self::assertInstanceOf(Honda::class, $honda);
     }
 
@@ -161,11 +157,8 @@ class ArrayToObjectTest extends TestCase
     {
         $data = CarData::regularArray();
 
-        $classInfoGenerator = new ClassInfoGenerator();
-        $arrayToObject      = new ArrayToObject($classInfoGenerator);
-
         /** @var CarComplete $car */
-        $car = $arrayToObject->hydrate($data, CarComplete::class);
+        $car = $this->arrayToObject->hydrate($data, CarComplete::class);
 
         // basic
         self::assertSame($data['color'], $car->color);
@@ -226,13 +219,11 @@ class ArrayToObjectTest extends TestCase
 
         // set specific array keys (reuse existing data)
         $data['interCoolers'][$key1] = $data['interCoolers'][$key1Original]; /** @phpstan-ignore-line */
-        $data['interCoolers'][$key2] = $data['interCoolers'][$key2Original]; /** @phpstan-ignore-line */
-        unset($data['interCoolers'][$key1Original], $data['interCoolers'][$key2Original]); /** @phpstan-ignore-line */
-        $classInfoGenerator = new ClassInfoGenerator();
-        $arrayToObject      = new ArrayToObject($classInfoGenerator);
+        $data['interCoolers'][$key2] = $data['interCoolers'][$key2Original];
+        unset($data['interCoolers'][$key1Original], $data['interCoolers'][$key2Original]);
 
         /** @var CarComplete $car */
-        $car = $arrayToObject->hydrate($data, CarComplete::class);
+        $car = $this->arrayToObject->hydrate($data, CarComplete::class);
 
         self::assertArrayHasKey($key1, $car->interCoolers);
         self::assertArrayHasKey($key2, $car->interCoolers);
@@ -250,11 +241,8 @@ class ArrayToObjectTest extends TestCase
         $data = CarData::regularArray();
         unset($data['countryEntryDate']);
 
-        $classInfoGenerator = new ClassInfoGenerator();
-        $arrayToObject      = new ArrayToObject($classInfoGenerator);
-
         /** @var CarCompleteWithNewInConstructor $car */
-        $car = $arrayToObject->hydrate($data, CarCompleteWithNewInConstructor::class);
+        $car = $this->arrayToObject->hydrate($data, CarCompleteWithNewInConstructor::class);
 
         self::assertInstanceOf(DateTimeImmutable::class, $car->countryEntryDate);
         self::assertTrue(
@@ -291,9 +279,7 @@ class ArrayToObjectTest extends TestCase
             null
         );
 
-        $classInfoGenerator = new ClassInfoGenerator();
-        $arrayToObject      = new ArrayToObject($classInfoGenerator);
-        $value              = $arrayToObject->castValue($inputValue, $classProperty);
+        $value = $this->arrayToObject->castValue($inputValue, $classProperty);
 
         self::assertSame($expected, $value);
     }
@@ -319,11 +305,11 @@ class ArrayToObjectTest extends TestCase
             null
         );
 
+        $pathData     = ['test' => null];
         $exceptionMsg = sprintf(
-            'Unable to cast value: "%s" to %s::%s (%s) - %s',
+            'Unable to cast value: "%s" into %s (%s) - %s',
             var_export($value, true),
-            $classProperty->className,
-            $classProperty->name,
+            PropertyPathBuilder::build($pathData, $classProperty->name),
             $classProperty->type,
             'only sane boolean conversion allowed'
         );
@@ -331,10 +317,7 @@ class ArrayToObjectTest extends TestCase
         $this->expectException(UnableToCastPropertyValueException::class);
         $this->expectExceptionMessage($exceptionMsg);
 
-        $classInfoGenerator = new ClassInfoGenerator();
-        $arrayToObject      = new ArrayToObject($classInfoGenerator);
-
-        $arrayToObject->castValue($value, $classProperty);
+        $this->arrayToObject->castValue($value, $classProperty, $pathData);
     }
 
     /**
@@ -361,9 +344,7 @@ class ArrayToObjectTest extends TestCase
             null
         );
 
-        $classInfoGenerator = new ClassInfoGenerator();
-        $arrayToObject      = new ArrayToObject($classInfoGenerator);
-        $value              = $arrayToObject->castValue($inputValue, $classProperty);
+        $value = $this->arrayToObject->castValue($inputValue, $classProperty);
 
         self::assertSame($expected, $value);
     }
@@ -392,9 +373,7 @@ class ArrayToObjectTest extends TestCase
             null
         );
 
-        $classInfoGenerator = new ClassInfoGenerator();
-        $arrayToObject      = new ArrayToObject($classInfoGenerator);
-        $value              = $arrayToObject->castValue($dateTimeString, $classProperty);
+        $value = $this->arrayToObject->castValue($dateTimeString, $classProperty);
 
         self::assertInstanceOf(DateTimeImmutable::class, $value);
     }
@@ -421,10 +400,9 @@ class ArrayToObjectTest extends TestCase
         );
 
         $exceptionMsg = sprintf(
-            'Unable to cast value: "%s" to %s::%s (%s) - %s',
+            'Unable to cast value: "%s" into %s (%s) - %s',
             $dateTimeString,
-            $reflectionClass->name,
-            $reflectionProperty->getName(),
+            PropertyPathBuilder::build([], $reflectionProperty->getName()),
             $reflectionPropertyType->getName(),
             'Failed to parse time string (20-error-23-01-01 12:00:00.48596) at position 0 (2): Unexpected character'
         );
@@ -432,10 +410,7 @@ class ArrayToObjectTest extends TestCase
         $this->expectException(UnableToCastPropertyValueException::class);
         $this->expectExceptionMessage($exceptionMsg);
 
-        $classInfoGenerator = new ClassInfoGenerator();
-        $arrayToObject      = new ArrayToObject($classInfoGenerator);
-
-        $arrayToObject->castValue($dateTimeString, $classProperty);
+        $this->arrayToObject->castValue($dateTimeString, $classProperty);
     }
 
     /**
@@ -468,9 +443,7 @@ class ArrayToObjectTest extends TestCase
             null
         );
 
-        $classInfoGenerator = new ClassInfoGenerator();
-        $arrayToObject      = new ArrayToObject($classInfoGenerator);
-        $value              = $arrayToObject->castValue($enumBackedValue, $classProperty);
+        $value = $this->arrayToObject->castValue($enumBackedValue, $classProperty);
 
         self::assertSame($enumExpected, $value);
     }
@@ -505,10 +478,9 @@ class ArrayToObjectTest extends TestCase
         );
 
         $exceptionMsg = sprintf(
-            'Unable to cast value: "%s" to %s::%s (%s - Backed Enum) - %s',
+            'Unable to cast value: "%s" into %s (%s - Backed Enum) - %s',
             $enumBackedValue,
-            $reflectionClass->name,
-            $reflectionProperty->getName(),
+            PropertyPathBuilder::build([], $reflectionProperty->getName()),
             $reflectionPropertyType->getName(),
             '"normal" is not a valid backing value for enum SquidIT\Hydrator\Tests\Unit\ExampleObjects\Car\Speed'
         );
@@ -516,9 +488,7 @@ class ArrayToObjectTest extends TestCase
         $this->expectException(UnableToCastPropertyValueException::class);
         $this->expectExceptionMessage($exceptionMsg);
 
-        $classInfoGenerator = new ClassInfoGenerator();
-        $arrayToObject      = new ArrayToObject($classInfoGenerator);
-        $arrayToObject->castValue($enumBackedValue, $classProperty);
+        $this->arrayToObject->castValue($enumBackedValue, $classProperty);
     }
 
     // /////////
@@ -537,11 +507,8 @@ class ArrayToObjectTest extends TestCase
             CarData::regularArray(),
         ];
 
-        $classInfoGenerator = new ClassInfoGenerator();
-        $arrayToObject      = new ArrayToObject($classInfoGenerator);
-
         /** @var array<int, CarComplete> $cars */
-        $cars = $arrayToObject->hydrateMulti($data, CarComplete::class);
+        $cars = $this->arrayToObject->hydrateMulti($data, CarComplete::class);
 
         self::assertContainsOnlyInstancesOf(CarComplete::class, $cars);
         self::assertArrayHasKey($specificArrayKey, $cars);
@@ -554,13 +521,10 @@ class ArrayToObjectTest extends TestCase
     {
         $data = ['test' => CarData::regularArray()];
 
-        $classInfoGenerator = new ClassInfoGenerator();
-        $arrayToObject      = new ArrayToObject($classInfoGenerator);
-
         $this->expectException(AmbiguousTypeException::class);
 
         /* @phpstan-ignore-next-line */
-        $arrayToObject->hydrateMulti($data, CarComplete::class);
+        $this->arrayToObject->hydrateMulti($data, CarComplete::class);
     }
 
     /**
@@ -570,13 +534,28 @@ class ArrayToObjectTest extends TestCase
     {
         $data = [12 => 'bert'];
 
-        $classInfoGenerator = new ClassInfoGenerator();
-        $arrayToObject      = new ArrayToObject($classInfoGenerator);
-
         $this->expectException(AmbiguousTypeException::class);
 
         /* @phpstan-ignore-next-line */
-        $arrayToObject->hydrateMulti($data, CarComplete::class);
+        $this->arrayToObject->hydrateMulti($data, CarComplete::class);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testHydratingObjectThrowsValidationFailureExceptionWhenObjectExtendingObjectValidatorFailsCheck(): void
+    {
+        $displacementValueOk = 600;
+        $dataOke             = ['engineDisplacementInCc' => $displacementValueOk];
+        $dataBad             = ['engineDisplacementInCc' => 10000];
+
+        $CarWithCustomEngine = $this->arrayToObject->hydrate($dataOke, CarWithCustomEngine::class);
+        self::assertSame($displacementValueOk, $CarWithCustomEngine->engineDisplacementInCc);
+
+        $this->expectException(ValidationFailureException::class);
+        $this->expectExceptionMessage('Invalid value received for property: engineDisplacementInCc, value needs to be between 600 and 8000');
+
+        $this->arrayToObject->hydrate($dataBad, CarWithCustomEngine::class);
     }
 
     /**

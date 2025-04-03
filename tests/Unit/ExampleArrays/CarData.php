@@ -9,7 +9,7 @@ use JsonException;
 class CarData
 {
     /**
-     * @return array<string, mixed>
+     * @return array<string, array<mixed>|float|int|string|null>
      */
     public static function regularArray(): array
     {

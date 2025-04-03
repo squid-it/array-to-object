@@ -13,5 +13,6 @@ readonly class ClassInfo
     public function __construct(
         public string $className,
         public array $classPropertyList,
+        public bool $hasValidator = false,
     ) {}
 }
