@@ -20,6 +20,7 @@ use SquidIT\Hydrator\Interface\ObjectValidatorInterface;
 use Throwable;
 use TypeError;
 
+use function array_key_last;
 use function filter_var;
 use function is_array;
 use function is_bool;

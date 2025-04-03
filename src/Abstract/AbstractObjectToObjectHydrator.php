@@ -16,7 +16,11 @@ use SquidIT\Hydrator\Exceptions\PropertyPathBuilder;
 use SquidIT\Hydrator\Interface\DtoToObjectHydratorInterface;
 use UnitEnum;
 
+use function array_key_first;
 use function is_array;
+use function is_int;
+use function is_object;
+use function property_exists;
 use function sprintf;
 
 abstract class AbstractObjectToObjectHydrator extends AbstractDataToObjectHydrator implements DtoToObjectHydratorInterface

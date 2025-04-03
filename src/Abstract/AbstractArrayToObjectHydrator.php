@@ -16,7 +16,9 @@ use SquidIT\Hydrator\Exceptions\PropertyPathBuilder;
 use SquidIT\Hydrator\Interface\ArrayToObjectHydratorInterface;
 
 use function array_key_exists;
+use function array_key_first;
 use function is_array;
+use function is_int;
 use function sprintf;
 
 abstract class AbstractArrayToObjectHydrator extends AbstractDataToObjectHydrator implements ArrayToObjectHydratorInterface

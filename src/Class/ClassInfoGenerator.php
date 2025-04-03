@@ -20,6 +20,7 @@ use UnitEnum;
 
 use function class_exists;
 use function implode;
+use function is_a;
 use function sprintf;
 
 class ClassInfoGenerator
