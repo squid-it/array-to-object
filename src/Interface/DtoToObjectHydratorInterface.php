@@ -9,7 +9,6 @@ use SquidIT\Hydrator\Exceptions\AmbiguousTypeException;
 use SquidIT\Hydrator\Exceptions\MissingPropertyValueException;
 use SquidIT\Hydrator\Exceptions\UnableToCastPropertyValueException;
 use SquidIT\Hydrator\Exceptions\ValidationFailureException;
-use TypeError;
 
 interface DtoToObjectHydratorInterface
 {

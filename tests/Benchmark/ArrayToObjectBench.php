@@ -16,6 +16,7 @@ use SquidIT\Hydrator\DtoToObject;
 use SquidIT\Hydrator\Exceptions\AmbiguousTypeException;
 use SquidIT\Hydrator\Tests\Unit\ExampleArrays\CarData;
 use SquidIT\Hydrator\Tests\Unit\ExampleObjects\Car\Complete\CarComplete;
+use Throwable;
 
 class ArrayToObjectBench
 {
@@ -28,7 +29,6 @@ class ArrayToObjectBench
      */
     public function setUp(): void
     {
-        /* @phpstan-ignore assign.propertyType */
         $this->carDataObject = json_decode(
             json_encode(CarData::regularArray(), JSON_THROW_ON_ERROR),
             false,
@@ -36,7 +36,6 @@ class ArrayToObjectBench
             JSON_THROW_ON_ERROR
         );
 
-        /* @phpstan-ignore assign.propertyType */
         $this->carDataArray = json_decode(
             json_encode(CarData::regularArray(), JSON_THROW_ON_ERROR),
             true,
@@ -46,7 +45,7 @@ class ArrayToObjectBench
     }
 
     /**
-     * @throws AmbiguousTypeException|ReflectionException
+     * @throws Throwable
      */
     #[Revs(3), Iterations(3), Warmup(1)]
     public function benchHydrateArrayDataUsingInstantiatedHydratorInsideLoop(): void
@@ -65,7 +64,7 @@ class ArrayToObjectBench
     }
 
     /**
-     * @throws AmbiguousTypeException|ReflectionException
+     * @throws Throwable
      */
     #[Revs(3), Iterations(3), Warmup(1)]
     public function benchHydrateArrayDataUsingInstantiatedHydratorOutsideLoopWithCache(): void
@@ -84,7 +83,7 @@ class ArrayToObjectBench
     }
 
     /**
-     * @throws AmbiguousTypeException|ReflectionException
+     * @throws Throwable
      */
     #[BeforeMethods('setUp'), Revs(3), Iterations(3), Warmup(1)]
     public function benchHydrateArrayDataFromJsonUsingInstantiatedHydratorOutsideLoopWithCache(): void
@@ -103,7 +102,7 @@ class ArrayToObjectBench
     }
 
     /**
-     * @throws AmbiguousTypeException|ReflectionException
+     * @throws Throwable
      */
     #[BeforeMethods('setUp'), Revs(3), Iterations(3), Warmup(1)]
     public function benchHydrateObjectDataFromJsonUsingInstantiatedHydratorOutsideLoopWithCache(): void
