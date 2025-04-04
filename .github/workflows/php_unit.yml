@@ -2,10 +2,6 @@ name: PHP Code Quality
 
 on:
   pull_request:
-  push:
-    branches-ignore:
-      - development
-      - develop
 
 jobs:
   build:
