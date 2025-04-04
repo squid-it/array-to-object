@@ -119,7 +119,7 @@ abstract class AbstractDataToObjectHydrator implements HydratorClosureInterface
         switch ($classProperty->type) {
             case 'int':
                 if (is_int($value) === false && filter_var($value, FILTER_VALIDATE_INT) !== false) {
-                    $value = (int) $value;  /** @phpstan-ignore-line cast int string to int */
+                    $value = (int) $value;
                 }
 
                 break;

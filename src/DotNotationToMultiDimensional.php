@@ -80,11 +80,10 @@ class DotNotationToMultiDimensional
         foreach ($keyList as $key) {
             // create reference to positions in our array
             $key         = ctype_digit($key) ? (int) $key : $key;
-            $resultArray = &$resultArray[$key]; /** @phpstan-ignore-line */
+            $resultArray = &$resultArray[$key];
         }
 
         // we have looped through all array keys and $resultArray reference is now pointing to the final position within the array
-        /* @phpstan-ignore parameterByRef.type */
         $resultArray = $value;
     }
 }

@@ -51,7 +51,6 @@ class CarData
      */
     public static function regularObject(): object
     {
-        /* @phpstan-ignore return.type */
         return json_decode(
             json_encode(self::regularArray(), JSON_THROW_ON_ERROR),
             false,

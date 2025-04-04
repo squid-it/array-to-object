@@ -2,7 +2,6 @@ name: PHP Code Quality
 
 on:
   pull_request:
-  push:
 
 jobs:
   build:
@@ -25,8 +24,8 @@ jobs:
       - name: "Install PHP"
         uses: "shivammathur/setup-php@v2"
         with:
-          coverage: "none"
           php-version: "${{ matrix.php-version }}"
+          # extensions: xdebug-3.4.1
           ini-values: memory_limit=-1
           tools: composer:v2, cs2pr
 
@@ -47,14 +46,31 @@ jobs:
           echo "extension=simdjson.so" | sudo tee -a $PHP_INI_DIR
 
       - name: "Validate composer.json and composer.lock"
-        run: composer validate
+        run: "composer validate --strict"
 
-      - name: "Install dependencies"
+      - name: "Composer Install dependencies"
         run: composer install --prefer-dist --no-progress
 
-      - name: "Run test suite"
-        run: composer run-script test
-
-      - name: "Check coding standards"
+      - name: "Check PHP-CS-Fixer coding standards"
         if: ${{ matrix.php-version != '8.4' }}
-        run: "vendor/bin/php-cs-fixer fix -v --dry-run"
+        run: composer run-script cs:dry-run
+
+      - name: "Run PHPStan"
+        run: composer run-script analyse
+
+      - name: "Run test suite (with coverage)"
+        run: composer run-script test:unit:coverage
+        env:
+          XDEBUG_MODE: coverage
+
+      - name: "Validate test coverage"
+        uses: "5monkeys/cobertura-action@v14"
+        if: github.event_name == 'pull_request' && github.actor != 'dependabot[bot]'
+        with:
+          path: coverage/coverage.xml
+          minimum_coverage: 90
+          skip_covered: false
+          fail_below_threshold: 90
+          only_changed_files: true
+          show_class_names: true
+          show_missing: true

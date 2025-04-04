@@ -6,7 +6,9 @@ namespace SquidIT\Hydrator\Interface;
 
 use ReflectionException;
 use SquidIT\Hydrator\Exceptions\AmbiguousTypeException;
-use TypeError;
+use SquidIT\Hydrator\Exceptions\MissingPropertyValueException;
+use SquidIT\Hydrator\Exceptions\UnableToCastPropertyValueException;
+use SquidIT\Hydrator\Exceptions\ValidationFailureException;
 
 interface DtoToObjectHydratorInterface
 {
@@ -20,7 +22,11 @@ interface DtoToObjectHydratorInterface
      * @param object          $objectData An object with property names matching the target object property names.
      * @param class-string<T> $className  Classname of the target object
      *
-     * @throws AmbiguousTypeException|ReflectionException|TypeError
+     * @throws UnableToCastPropertyValueException
+     * @throws ReflectionException
+     * @throws AmbiguousTypeException
+     * @throws MissingPropertyValueException
+     * @throws ValidationFailureException
      *
      * @phpstan-return T An instance of the specified class with properties set to the corresponding array values.
      */
@@ -37,7 +43,11 @@ interface DtoToObjectHydratorInterface
      * @param array<int, object> $arrayOfObjectData
      * @param class-string<T>    $className
      *
-     * @throws AmbiguousTypeException|ReflectionException
+     * @throws UnableToCastPropertyValueException
+     * @throws ReflectionException
+     * @throws AmbiguousTypeException
+     * @throws MissingPropertyValueException
+     * @throws ValidationFailureException
      *
      * @return array<int, T> An array of object instances of the specified class with properties set to the corresponding object properties.
      */
