@@ -6,7 +6,9 @@ namespace SquidIT\Hydrator\Interface;
 
 use ReflectionException;
 use SquidIT\Hydrator\Exceptions\AmbiguousTypeException;
-use TypeError;
+use SquidIT\Hydrator\Exceptions\MissingPropertyValueException;
+use SquidIT\Hydrator\Exceptions\UnableToCastPropertyValueException;
+use SquidIT\Hydrator\Exceptions\ValidationFailureException;
 
 interface ArrayToObjectHydratorInterface
 {
@@ -20,7 +22,11 @@ interface ArrayToObjectHydratorInterface
      * @param array<string, mixed> $objectData An associative array with keys matching the class property names.
      * @param class-string<T>      $className  Classname of the object to be created
      *
-     * @throws AmbiguousTypeException|ReflectionException|TypeError
+     * @throws UnableToCastPropertyValueException
+     * @throws ReflectionException
+     * @throws AmbiguousTypeException
+     * @throws MissingPropertyValueException
+     * @throws ValidationFailureException
      *
      * @phpstan-return T An instance of the specified class with properties set to the corresponding array values.
      */
@@ -37,7 +43,11 @@ interface ArrayToObjectHydratorInterface
      * @param array<int, array<string, mixed>> $arrayOfObjectData
      * @param class-string<T>                  $className
      *
-     * @throws AmbiguousTypeException|ReflectionException
+     * @throws UnableToCastPropertyValueException
+     * @throws ReflectionException
+     * @throws AmbiguousTypeException
+     * @throws MissingPropertyValueException
+     * @throws ValidationFailureException
      *
      * @return array<int, T> An array of object instances of the specified class with properties set to the corresponding array values.
      */
