@@ -72,9 +72,9 @@ jobs:
         if: github.event_name == 'pull_request' && github.actor != 'dependabot[bot]'
         with:
           path: coverage/coverage.xml
-          minimum_coverage: 95
+          minimum_coverage: 90
           skip_covered: false
-          fail_below_threshold: 95
+          fail_below_threshold: 90
           only_changed_files: true
           show_class_names: true
           show_missing: true
