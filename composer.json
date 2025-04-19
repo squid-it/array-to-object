@@ -46,8 +46,14 @@
   "scripts": {
     "benchmark": "phpbench run tests/Benchmark --report=aggregate --retry-threshold=5",
     "analyse": "phpstan analyse -l 8 src tests",
-    "cs:fix": "php-cs-fixer fix",
-    "cs:dry-run": "php-cs-fixer fix -v --dry-run",
+    "cs:fix": [
+      "@putenv PHP_CS_FIXER_IGNORE_ENV=true",
+      "php-cs-fixer fix"
+    ],
+    "cs:dry-run": [
+      "@putenv PHP_CS_FIXER_IGNORE_ENV=true",
+      "php-cs-fixer fix -v --dry-run"
+    ],
     "fix": [
       "@test:unit:coverage",
       "@cs:fix",

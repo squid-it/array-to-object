@@ -21,7 +21,7 @@ use Throwable;
 use TypeError;
 
 use function array_key_last;
-use function filter_var;
+use function ctype_digit;
 use function is_array;
 use function is_bool;
 use function is_int;
@@ -118,7 +118,35 @@ abstract class AbstractDataToObjectHydrator implements HydratorClosureInterface
 
         switch ($classProperty->type) {
             case 'int':
-                if (is_int($value) === false && filter_var($value, FILTER_VALIDATE_INT) !== false) {
+                if (is_int($value) === true) {
+                    break;
+                }
+
+                $allDigits = ctype_digit($value);
+
+                if ($allDigits === true) {
+                    $value = (int) $value;
+
+                    break;
+                }
+
+                if (is_string($value) === false) {
+                    throw new UnableToCastPropertyValueException(sprintf(
+                        'Unable to cast non int value: "%s" into %s (%s) - %s',
+                        var_export($value, true),
+                        PropertyPathBuilder::build($objectPath, $classProperty->name),
+                        $classProperty->type,
+                        'only integer values given as string can be converted to int'
+                    ));
+                }
+
+                $prefix    = $value[0];
+                $remainder = substr($value, 1);
+
+                if (
+                    in_array($prefix, ['-', '+'], true) === true
+                    && ctype_digit($remainder) === true
+                ) {
                     $value = (int) $value;
                 }
 
@@ -182,6 +210,13 @@ abstract class AbstractDataToObjectHydrator implements HydratorClosureInterface
                             )
                         );
                     }
+                } elseif (
+                    $classProperty->isBuildIn === false
+                    && $classProperty->hasDefaultValue === true
+                    && $value === $classProperty->defaultValue
+                ) {
+                    /** @var object $value */
+                    return clone $value;
                 }
         }
 
