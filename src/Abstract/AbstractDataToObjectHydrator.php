@@ -21,10 +21,11 @@ use Throwable;
 use TypeError;
 
 use function array_key_last;
-use function filter_var;
+use function ctype_digit;
 use function is_array;
 use function is_bool;
 use function is_int;
+use function is_object;
 use function is_string;
 use function sprintf;
 
@@ -116,9 +117,46 @@ abstract class AbstractDataToObjectHydrator implements HydratorClosureInterface
             return null;
         }
 
+        if (
+            $classProperty->isBuildIn === false
+            && $classProperty->isBackedEnum === false
+            && is_object($value)
+            && $value === $classProperty->defaultValue
+        ) {
+            return clone $value;
+        }
+
         switch ($classProperty->type) {
             case 'int':
-                if (is_int($value) === false && filter_var($value, FILTER_VALIDATE_INT) !== false) {
+                if (is_int($value) === true) {
+                    break;
+                }
+
+                $allDigits = ctype_digit($value);
+
+                if ($allDigits === true) {
+                    $value = (int) $value;
+
+                    break;
+                }
+
+                if (is_string($value) === false) {
+                    throw new UnableToCastPropertyValueException(sprintf(
+                        'Unable to cast non int value: "%s" into %s (%s) - %s',
+                        var_export($value, true),
+                        PropertyPathBuilder::build($objectPath, $classProperty->name),
+                        $classProperty->type,
+                        'only integer values given as string can be converted to int'
+                    ));
+                }
+
+                $prefix    = $value[0];
+                $remainder = substr($value, 1);
+
+                if (
+                    in_array($prefix, ['-', '+'], true) === true
+                    && ctype_digit($remainder) === true
+                ) {
                     $value = (int) $value;
                 }
 
