@@ -25,7 +25,6 @@ use function ctype_digit;
 use function is_array;
 use function is_bool;
 use function is_int;
-use function is_object;
 use function is_string;
 use function sprintf;
 
@@ -115,15 +114,6 @@ abstract class AbstractDataToObjectHydrator implements HydratorClosureInterface
     {
         if ($value === null && $classProperty->allowsNull) {
             return null;
-        }
-
-        if (
-            $classProperty->isBuildIn === false
-            && $classProperty->isBackedEnum === false
-            && is_object($value)
-            && $value === $classProperty->defaultValue
-        ) {
-            return clone $value;
         }
 
         switch ($classProperty->type) {
@@ -220,6 +210,13 @@ abstract class AbstractDataToObjectHydrator implements HydratorClosureInterface
                             )
                         );
                     }
+                } elseif (
+                    $classProperty->isBuildIn === false
+                    && $classProperty->hasDefaultValue === true
+                    && $value === $classProperty->defaultValue
+                ) {
+                    /** @var object $value */
+                    return clone $value;
                 }
         }
 
