@@ -15,9 +15,9 @@ use SquidIT\Hydrator\Class\ClassInfoGenerator;
 use SquidIT\Hydrator\Class\ClassProperty;
 use SquidIT\Hydrator\Exceptions\AmbiguousTypeException;
 use SquidIT\Hydrator\Exceptions\MissingPropertyValueException;
-use SquidIT\Hydrator\Exceptions\PropertyPathBuilder;
 use SquidIT\Hydrator\Exceptions\UnableToCastPropertyValueException;
 use SquidIT\Hydrator\Exceptions\ValidationFailureException;
+use SquidIT\Hydrator\Property\PathTracker;
 use SquidIT\Hydrator\Tests\Unit\ExampleArrays\CarData;
 use SquidIT\Hydrator\Tests\Unit\ExampleObjects\Car\Complete\CarComplete;
 use SquidIT\Hydrator\Tests\Unit\ExampleObjects\Car\Complete\CarCompleteWithNewInConstructor;
@@ -211,7 +211,7 @@ class ArrayToObjectTest extends TestCase
      */
     public function testHydratingRetainsObjectIndexKeys(): void
     {
-        $key1         = 'new';
+        $key1         = 4;
         $key2         = 33;
         $key1Original = 0;
         $key2Original = 1;
@@ -305,11 +305,11 @@ class ArrayToObjectTest extends TestCase
             null
         );
 
-        $pathData     = ['test' => null];
+        $pathTracker  = new PathTracker(['test']);
         $exceptionMsg = sprintf(
             'Unable to cast value: "%s" into %s (%s) - %s',
             var_export($value, true),
-            PropertyPathBuilder::build($pathData, $classProperty->name),
+            $pathTracker->getPath($classProperty->name),
             $classProperty->type,
             'only sane boolean conversion allowed'
         );
@@ -317,7 +317,7 @@ class ArrayToObjectTest extends TestCase
         $this->expectException(UnableToCastPropertyValueException::class);
         $this->expectExceptionMessage($exceptionMsg);
 
-        $this->arrayToObject->castValue($value, $classProperty, $pathData);
+        $this->arrayToObject->castValue($value, $classProperty, $pathTracker);
     }
 
     /**
@@ -399,10 +399,11 @@ class ArrayToObjectTest extends TestCase
             null
         );
 
+        $pathTracker  = new PathTracker();
         $exceptionMsg = sprintf(
             'Unable to cast value: "%s" into %s (%s) - %s',
             $dateTimeString,
-            PropertyPathBuilder::build([], $reflectionProperty->getName()),
+            $pathTracker->getPath($reflectionProperty->getName()),
             $reflectionPropertyType->getName(),
             'Failed to parse time string (20-error-23-01-01 12:00:00.48596) at position 0 (2): Unexpected character'
         );
@@ -477,10 +478,11 @@ class ArrayToObjectTest extends TestCase
             null
         );
 
+        $pathTracker  = new PathTracker();
         $exceptionMsg = sprintf(
             'Unable to cast value: "%s" into %s (%s - Backed Enum) - %s',
             $enumBackedValue,
-            PropertyPathBuilder::build([], $reflectionProperty->getName()),
+            $pathTracker->getPath($reflectionProperty->getName()),
             $reflectionPropertyType->getName(),
             '"normal" is not a valid backing value for enum SquidIT\Hydrator\Tests\Unit\ExampleObjects\Car\Speed'
         );

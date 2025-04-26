@@ -25,7 +25,7 @@ class MissingPropertyValueExceptionTest extends TestCase
     /**
      * @throws Throwable
      */
-    public function testHydrateClassWithConstructorReturnsObjectWithDefaultPhpTypes(): void
+    public function testHydratorThrowsExceptionWhenAPropertyValueDoesNotExistInsideTheDataSet(): void
     {
         $data = CarData::regularArray();
 
@@ -35,7 +35,22 @@ class MissingPropertyValueExceptionTest extends TestCase
         unset($data['manufacturer']['employeeList'][1]['employeeName']);
 
         $this->expectException(MissingPropertyValueException::class);
-        $this->expectExceptionMessage('Could not hydrate object: "Employee", no property data provided for: "employeeName" (passengerList.manufacturer.employeeList[1].employeeName)');
+        $this->expectExceptionMessage('Could not hydrate object: "Employee", no property data provided for: "employeeName" (manufacturer.employeeList[1].employeeName)');
+
+        $this->arrayToObject->hydrate($data, CarComplete::class);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testPathTrackerCorrectlyRemovesPathsWhenAPropertyDoesNotExist(): void
+    {
+        $data = CarData::regularArray();
+
+        unset($data['interCoolers'][1]['speedCategory']);
+
+        $this->expectException(MissingPropertyValueException::class);
+        $this->expectExceptionMessage('Could not hydrate object: "InterCooler", no property data provided for: "speedCategory" (interCoolers[1].speedCategory)');
 
         $this->arrayToObject->hydrate($data, CarComplete::class);
     }

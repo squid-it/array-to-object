@@ -12,15 +12,14 @@ use SquidIT\Hydrator\Class\ClassInfoGenerator;
 use SquidIT\Hydrator\Class\ClassProperty;
 use SquidIT\Hydrator\Exceptions\AmbiguousTypeException;
 use SquidIT\Hydrator\Exceptions\MissingPropertyValueException;
-use SquidIT\Hydrator\Exceptions\PropertyPathBuilder;
 use SquidIT\Hydrator\Exceptions\UnableToCastPropertyValueException;
 use SquidIT\Hydrator\Exceptions\ValidationFailureException;
 use SquidIT\Hydrator\Interface\HydratorClosureInterface;
 use SquidIT\Hydrator\Interface\ObjectValidatorInterface;
+use SquidIT\Hydrator\Property\PathTracker;
 use Throwable;
 use TypeError;
 
-use function array_key_last;
 use function ctype_digit;
 use function is_array;
 use function is_bool;
@@ -40,9 +39,13 @@ abstract class AbstractDataToObjectHydrator implements HydratorClosureInterface
     /** @var array<class-string, ReflectionClass> */
     protected array $reflectionClasses = [];
 
-    public function __construct(ClassInfoGenerator $classInfoGenerator)
+    /** @var bool when true, it this library will return end-user safe error messages */
+    protected bool $useEndUserSafeErrorMsg;
+
+    public function __construct(ClassInfoGenerator $classInfoGenerator, bool $useEndUserSafeErrorMsg = false)
     {
-        $this->classInfoGenerator = $classInfoGenerator;
+        $this->classInfoGenerator     = $classInfoGenerator;
+        $this->useEndUserSafeErrorMsg = $useEndUserSafeErrorMsg;
     }
 
     /**
@@ -50,7 +53,6 @@ abstract class AbstractDataToObjectHydrator implements HydratorClosureInterface
      *
      * @param array<int|string, mixed>|object $objectData
      * @param class-string<T>                 $className
-     * @param array<string, int|null>         $objectPath
      *
      * @throws ReflectionException|TypeError
      * @throws AmbiguousTypeException
@@ -62,7 +64,7 @@ abstract class AbstractDataToObjectHydrator implements HydratorClosureInterface
     protected function createObjectAndHydrate(
         array|object $objectData,
         string $className,
-        array $objectPath = [],
+        PathTracker $pathTracker = new PathTracker(),
     ): object {
         if (isset($this->reflectionClasses[$className])) {
             $reflectionClass = $this->reflectionClasses[$className];
@@ -80,12 +82,12 @@ abstract class AbstractDataToObjectHydrator implements HydratorClosureInterface
             $objectData,
             $object,
             $classInfo,
-            $objectPath,
+            $pathTracker,
         ); // start hydrating
 
         if ($classInfo->hasValidator) {
             /** @var ObjectValidatorInterface&T $object */
-            $object->validate($objectPath);
+            $object->validate($pathTracker);
         }
 
         return $object;
@@ -106,12 +108,13 @@ abstract class AbstractDataToObjectHydrator implements HydratorClosureInterface
     }
 
     /**
-     * @param array<string, int|null> $objectPath
-     *
      * @throws UnableToCastPropertyValueException
      */
-    public function castValue(mixed $value, ClassProperty $classProperty, array $objectPath = []): mixed
-    {
+    public function castValue(
+        mixed $value,
+        ClassProperty $classProperty,
+        PathTracker $pathTracker = new PathTracker(),
+    ): mixed {
         if ($value === null && $classProperty->allowsNull) {
             return null;
         }
@@ -131,13 +134,23 @@ abstract class AbstractDataToObjectHydrator implements HydratorClosureInterface
                 }
 
                 if (is_string($value) === false) {
-                    throw new UnableToCastPropertyValueException(sprintf(
-                        'Unable to cast non int value: "%s" into %s (%s) - %s',
-                        var_export($value, true),
-                        PropertyPathBuilder::build($objectPath, $classProperty->name),
-                        $classProperty->type,
-                        'only integer values given as string can be converted to int'
-                    ));
+                    if ($this->useEndUserSafeErrorMsg) {
+                        $errorMsg = sprintf(
+                            'Path: %s - Invalid value detected. Expected integer, received: "%s"',
+                            $pathTracker->getPath($classProperty->name),
+                            var_export($value, true),
+                        );
+                    } else {
+                        $errorMsg = sprintf(
+                            'Unable to cast non int value: "%s" into %s (%s) - %s',
+                            var_export($value, true),
+                            $pathTracker->getPath($classProperty->name),
+                            $classProperty->type,
+                            'only integer values given as string can be converted to int'
+                        );
+                    }
+
+                    throw new UnableToCastPropertyValueException($errorMsg);
                 }
 
                 $prefix    = $value[0];
@@ -164,13 +177,23 @@ abstract class AbstractDataToObjectHydrator implements HydratorClosureInterface
                 };
 
                 if ($result === 'unknown') {
-                    throw new UnableToCastPropertyValueException(sprintf(
-                        'Unable to cast value: "%s" into %s (%s) - %s',
-                        var_export($value, true),
-                        PropertyPathBuilder::build($objectPath, $classProperty->name),
-                        $classProperty->type,
-                        'only sane boolean conversion allowed'
-                    ));
+                    if ($this->useEndUserSafeErrorMsg) {
+                        $errorMsg = sprintf(
+                            'Path: %s - Invalid value detected. Expected boolean compatible value, received: "%s"',
+                            $pathTracker->getPath($classProperty->name),
+                            var_export($value, true),
+                        );
+                    } else {
+                        $errorMsg = sprintf(
+                            'Unable to cast value: "%s" into %s (%s) - %s',
+                            var_export($value, true),
+                            $pathTracker->getPath($classProperty->name),
+                            $classProperty->type,
+                            'only sane boolean conversion allowed'
+                        );
+                    }
+
+                    throw new UnableToCastPropertyValueException($errorMsg);
                 }
 
                 $value = $result;
@@ -182,13 +205,23 @@ abstract class AbstractDataToObjectHydrator implements HydratorClosureInterface
                     try {
                         $value = new DateTimeImmutable($value);
                     } catch (Throwable $e) {
-                        throw new UnableToCastPropertyValueException(sprintf(
-                            'Unable to cast value: "%s" into %s (%s) - %s',
-                            $value,
-                            PropertyPathBuilder::build($objectPath, $classProperty->name),
-                            $classProperty->type,
-                            $e->getMessage()
-                        ));
+                        if ($this->useEndUserSafeErrorMsg) {
+                            $errorMsg = sprintf(
+                                'Path: %s - Invalid value detected. Expected datetime compatible value, received: "%s"',
+                                $pathTracker->getPath($classProperty->name),
+                                var_export($value, true),
+                            );
+                        } else {
+                            $errorMsg = sprintf(
+                                'Unable to cast value: "%s" into %s (%s) - %s',
+                                $value,
+                                $pathTracker->getPath($classProperty->name),
+                                $classProperty->type,
+                                $e->getMessage()
+                            );
+                        }
+
+                        throw new UnableToCastPropertyValueException($errorMsg);
                     }
                 }
 
@@ -196,19 +229,29 @@ abstract class AbstractDataToObjectHydrator implements HydratorClosureInterface
 
             default:
                 if ($classProperty->isBackedEnum && (is_int($value) || is_string($value))) {
+                    $enumName = $classProperty->type;
+
                     try {
-                        $enumName = $classProperty->type;
-                        $value    = $enumName::from($value);
+                        $value = $enumName::from($value);
                     } catch (Throwable $e) {
-                        throw new UnableToCastPropertyValueException(
-                            sprintf(
+                        if ($this->useEndUserSafeErrorMsg) {
+                            $errorMsg = sprintf(
+                                'Path: %s - Invalid value detected. Allowed values "%s", received: "%s"',
+                                $pathTracker->getPath($classProperty->name),
+                                implode('/', array_column($enumName::cases(), 'value')),
+                                var_export($value, true),
+                            );
+                        } else {
+                            $errorMsg = sprintf(
                                 'Unable to cast value: "%s" into %s (%s - Backed Enum) - %s',
                                 $value,
-                                PropertyPathBuilder::build($objectPath, $classProperty->name),
+                                $pathTracker->getPath($classProperty->name),
                                 $classProperty->type,
                                 $e->getMessage()
-                            )
-                        );
+                            );
+                        }
+
+                        throw new UnableToCastPropertyValueException($errorMsg);
                     }
                 } elseif (
                     $classProperty->isBuildIn === false
@@ -227,7 +270,6 @@ abstract class AbstractDataToObjectHydrator implements HydratorClosureInterface
      * Recursively Hydrate objects and array of objects
      *
      * @param array<int|string, mixed>|object $value
-     * @param array<string, int|null>         $objectPath
      *
      * @throws ReflectionException|TypeError
      * @throws AmbiguousTypeException
@@ -239,33 +281,39 @@ abstract class AbstractDataToObjectHydrator implements HydratorClosureInterface
     public function recursivelyHydrate(
         array|object $value,
         ClassProperty $classProperty,
-        array $objectPath,
+        PathTracker $pathTracker,
     ): array|object {
         $result = $value;
+        $path   = $classProperty->name;
 
         if ($classProperty->isBuildIn === false) {
             // Single Object
+            $pathTracker->addPath($path);
             /** @var class-string $classString */
             $classString = $classProperty->type;
-            $result      = $this->createObjectAndHydrate($value, $classString, $objectPath);
+            $result      = $this->createObjectAndHydrate($value, $classString, $pathTracker);
+
+            $pathTracker->removePath();
         } elseif ($classProperty->arrayOf !== null && is_array($value) === true) {
             // Array of Objects
+            $pathTracker->addPath($path);
             /** @var class-string $classString */
-            $classString       = $classProperty->arrayOf;
-            $arrayOfObjects    = [];
-            $lastObjectPathKey = array_key_last($objectPath);
+            $classString    = $classProperty->arrayOf;
+            $arrayOfObjects = [];
 
             /**
              * @var array<string, mixed> $arrayItem
              * @var int                  $key
              */
             foreach ($value as $key => $arrayItem) {
-                $objectPath[$lastObjectPathKey] = $key;
+                $pathTracker->setCurrentPathIteration($path, $key);
                 // retain the array index key
-                $arrayOfObjects[$key] = $this->createObjectAndHydrate($arrayItem, $classString, $objectPath);
+                $arrayOfObjects[$key] = $this->createObjectAndHydrate($arrayItem, $classString, $pathTracker);
             }
 
             $result = $arrayOfObjects;
+
+            $pathTracker->removePath();
         }
 
         return $result;
