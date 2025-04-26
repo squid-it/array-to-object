@@ -12,8 +12,8 @@ use SquidIT\Hydrator\Class\ClassInfo;
 use SquidIT\Hydrator\Class\ClassProperty;
 use SquidIT\Hydrator\Exceptions\AmbiguousTypeException;
 use SquidIT\Hydrator\Exceptions\MissingPropertyValueException;
-use SquidIT\Hydrator\Exceptions\PropertyPathBuilder;
 use SquidIT\Hydrator\Interface\ArrayToObjectHydratorInterface;
+use SquidIT\Hydrator\Property\PathTracker;
 
 use function array_key_exists;
 use function array_key_first;
@@ -32,15 +32,14 @@ abstract class AbstractArrayToObjectHydrator extends AbstractDataToObjectHydrato
     {
         $hydrator = $this;
         $closure  = Closure::bind(
-            static function (array $data, object $object, ClassInfo $classInfo, array $objectPath) use ($hydrator) {
+            static function (array $data, object $object, ClassInfo $classInfo, PathTracker $pathTracker) use ($hydrator) {
                 foreach ($classInfo->classPropertyList as $propertyName => $classProperty) {
-                    $value = $hydrator->getPropertyValue($data, $propertyName, $classProperty, $objectPath);
-                    $value = $hydrator->castValue($value, $classProperty, $objectPath);
+                    $value = $hydrator->getPropertyValue($data, $propertyName, $classProperty, $pathTracker);
+                    $value = $hydrator->castValue($value, $classProperty, $pathTracker);
 
                     // hydrate nested objects or array of objects
                     if (is_array($value)) {
-                        $objectPath[$propertyName] = null;
-                        $value                     = $hydrator->recursivelyHydrate($value, $classProperty, $objectPath);
+                        $value = $hydrator->recursivelyHydrate($value, $classProperty, $pathTracker);
                     }
 
                     // assign value
@@ -62,8 +61,7 @@ abstract class AbstractArrayToObjectHydrator extends AbstractDataToObjectHydrato
      * Return property value from supplied data
      * If no value exists, check if class property has got a default value and return default value
      *
-     * @param array<string, mixed>    $data
-     * @param array<string, int|null> $objectPath
+     * @param array<string, mixed> $data
      *
      * @throws MissingPropertyValueException
      * @throws ReflectionException
@@ -72,17 +70,24 @@ abstract class AbstractArrayToObjectHydrator extends AbstractDataToObjectHydrato
         array &$data,
         string $propertyName,
         ClassProperty $classProperty,
-        array $objectPath,
+        PathTracker $pathTracker,
     ): mixed {
         $hasPropertyDataInArray = array_key_exists($propertyName, $data);
 
         if ($hasPropertyDataInArray === false && $classProperty->hasDefaultValue === false) {
-            $msg = sprintf(
-                'Could not hydrate object: "%s", no property data provided for: "%s" (%s)',
-                (new ReflectionClass($classProperty->className))->getShortName(),
-                $propertyName,
-                PropertyPathBuilder::build($objectPath, $propertyName),
-            );
+            if ($this->useEndUserSafeErrorMsg) {
+                $msg = sprintf(
+                    'Path: %s - no data supplied for required property',
+                    $pathTracker->getPath($classProperty->name),
+                );
+            } else {
+                $msg = sprintf(
+                    'Could not hydrate object: "%s", no property data provided for: "%s" (%s)',
+                    (new ReflectionClass($classProperty->className))->getShortName(),
+                    $propertyName,
+                    $pathTracker->getPath($propertyName),
+                );
+            }
 
             throw new MissingPropertyValueException($msg);
         }
