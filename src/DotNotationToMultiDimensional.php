@@ -31,8 +31,10 @@ class DotNotationToMultiDimensional
      *
      * @param array<string, mixed> $dottedArray
      */
-    public function __construct(array $dottedArray, DotNotationFormat $dotNotationFormat = DotNotationFormat::JAVASCRIPT)
-    {
+    public function __construct(
+        array $dottedArray,
+        DotNotationFormat $dotNotationFormat = DotNotationFormat::JAVASCRIPT,
+    ) {
         if (empty($dottedArray)) {
             throw new InvalidArgumentException('Dotted array can not be empty');
         }
