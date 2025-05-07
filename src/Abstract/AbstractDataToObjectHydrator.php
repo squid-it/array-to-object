@@ -255,6 +255,7 @@ abstract class AbstractDataToObjectHydrator implements HydratorClosureInterface
                     }
                 } elseif (
                     $classProperty->isBuildIn === false
+                    && $classProperty->isBackedEnum === false
                     && $classProperty->hasDefaultValue === true
                     && $value === $classProperty->defaultValue
                 ) {
