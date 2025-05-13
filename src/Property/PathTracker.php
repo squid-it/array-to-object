@@ -9,6 +9,7 @@ use RuntimeException;
 use function array_key_last;
 use function count;
 use function implode;
+use function is_int;
 
 class PathTracker
 {
@@ -24,9 +25,11 @@ class PathTracker
         $this->pathList[] = $path;
     }
 
-    public function setCurrentPathIteration(string $path, int $key): void
+    public function setCurrentPathIteration(string $path, int|string $key): void
     {
         $this->removePath();
+
+        $key = is_int($key) ? $key : '\'' . $key . '\'';
 
         $this->pathList[] = $path . '[' . $key . ']';
     }

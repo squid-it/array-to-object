@@ -304,7 +304,7 @@ abstract class AbstractDataToObjectHydrator implements HydratorClosureInterface
 
             /**
              * @var array<string, mixed> $arrayItem
-             * @var int                  $key
+             * @var int|string           $key
              */
             foreach ($value as $key => $arrayItem) {
                 $pathTracker->setCurrentPathIteration($path, $key);
