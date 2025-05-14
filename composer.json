@@ -55,9 +55,9 @@
       "php-cs-fixer fix -v --dry-run"
     ],
     "fix": [
-      "@test:unit:coverage",
       "@cs:fix",
-      "@analyse"
+      "@analyse",
+      "@test:unit:coverage"
     ],
     "test:cycle": "phpunit --testsuite cycle",
     "test:unit": "phpunit --testsuite unit",

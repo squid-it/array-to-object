@@ -11,6 +11,7 @@ use ReflectionException;
 use SquidIT\Hydrator\Class\ClassInfoGenerator;
 use SquidIT\Hydrator\Class\ClassProperty;
 use SquidIT\Hydrator\Exceptions\AmbiguousTypeException;
+use SquidIT\Hydrator\Exceptions\InvalidPathTrackerPositionException;
 use SquidIT\Hydrator\Exceptions\MissingPropertyValueException;
 use SquidIT\Hydrator\Exceptions\UnableToCastPropertyValueException;
 use SquidIT\Hydrator\Exceptions\ValidationFailureException;
@@ -125,9 +126,7 @@ abstract class AbstractDataToObjectHydrator implements HydratorClosureInterface
                     break;
                 }
 
-                $allDigits = ctype_digit($value);
-
-                if ($allDigits === true) {
+                if (is_string($value) === true && ctype_digit($value) === true) {
                     $value = (int) $value;
 
                     break;
@@ -276,6 +275,7 @@ abstract class AbstractDataToObjectHydrator implements HydratorClosureInterface
      * @throws AmbiguousTypeException
      * @throws MissingPropertyValueException|UnableToCastPropertyValueException
      * @throws ValidationFailureException
+     * @throws InvalidPathTrackerPositionException
      *
      * @phpstan-return array<int|string, mixed>|object
      */
