@@ -121,6 +121,28 @@ class ArrayToObjectCastTest extends TestCase
     /**
      * @throws Throwable
      */
+    public function testCastReturnsNullWhenPropertyAllowsNull(): void
+    {
+        $classProperty = new ClassProperty(
+            CarWithDefaultDoors::class,
+            'extraInfo',
+            false,
+            'string',
+            false,
+            false,
+            true,
+            true,
+            null
+        );
+
+        $value = $this->arrayToObject->castValue(null, $classProperty);
+
+        self::assertNull($value);
+    }
+
+    /**
+     * @throws Throwable
+     */
     #[DataProvider('castToBoolSucceedsProvider')]
     public function testCastToBoolSucceeds(mixed $inputValue, bool $expected): void
     {
@@ -245,6 +267,35 @@ class ArrayToObjectCastTest extends TestCase
         $value = $this->arrayToObject->castValue($dateTimeString, $classProperty);
 
         self::assertInstanceOf(DateTimeImmutable::class, $value);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testCastToDateTimeImmutableKeepsDateTimeImmutableObject(): void
+    {
+        $dateTime           = new DateTimeImmutable('2023-01-01 12:00:00.48596');
+        $reflectionClass    = new ReflectionClass(CarWithCreatedDate::class);
+        $reflectionProperty = $reflectionClass->getProperty('createdDate');
+
+        /** @var ReflectionNamedType $reflectionPropertyType */
+        $reflectionPropertyType = $reflectionProperty->getType();
+
+        $classProperty = new ClassProperty(
+            $reflectionClass->name,
+            $reflectionProperty->getName(),
+            false,
+            $reflectionPropertyType->getName(),
+            false,
+            false,
+            $reflectionPropertyType->isBuiltin(),
+            $reflectionPropertyType->allowsNull(),
+            null
+        );
+
+        $value = $this->arrayToObject->castValue($dateTime, $classProperty);
+
+        self::assertSame($dateTime, $value);
     }
 
     public function testCastToDateTimeImmutableThrowsUnableToCastPropertyValueExceptionOnInvalidDateTime(): void
