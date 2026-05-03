@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace SquidIT\Hydrator\Abstract;
 
-use Closure;
 use DateTimeImmutable;
 use ReflectionClass;
 use ReflectionException;
 use SquidIT\Hydrator\Class\ClassInfoGenerator;
 use SquidIT\Hydrator\Class\ClassProperty;
+use SquidIT\Hydrator\Class\HydrationPlan;
 use SquidIT\Hydrator\Exceptions\AmbiguousTypeException;
 use SquidIT\Hydrator\Exceptions\InvalidPathTrackerPositionException;
 use SquidIT\Hydrator\Exceptions\MissingPropertyValueException;
@@ -30,15 +30,10 @@ use function sprintf;
 
 abstract class AbstractDataToObjectHydrator implements HydratorClosureInterface
 {
-    protected const HYDRATOR_TYPE = 'unknown';
-
     protected ClassInfoGenerator $classInfoGenerator;
 
-    /** @var array<string, array<class-string, Closure>> */
-    protected array $hydratorClosures = [];
-
-    /** @var array<class-string, ReflectionClass> */
-    protected array $reflectionClasses = [];
+    /** @var array<class-string, HydrationPlan> */
+    protected array $hydrationPlanList = [];
 
     /** @var bool when true, it this library will return end-user safe error messages */
     protected bool $useEndUserSafeErrorMsg;
@@ -67,45 +62,35 @@ abstract class AbstractDataToObjectHydrator implements HydratorClosureInterface
         string $className,
         PathTracker $pathTracker = new PathTracker(),
     ): object {
-        if (isset($this->reflectionClasses[$className])) {
-            $reflectionClass = $this->reflectionClasses[$className];
+        if (isset($this->hydrationPlanList[$className])) {
+            $hydrationPlan = $this->hydrationPlanList[$className];
         } else {
-            $reflectionClass                     = new ReflectionClass($className);
-            $this->reflectionClasses[$className] = $reflectionClass;
+            $hydrationPlan = new HydrationPlan(
+                $this->classInfoGenerator->getClassInfo($className),
+                $this->createClosure($className),
+                new ReflectionClass($className),
+            );
+
+            $this->hydrationPlanList[$className] = $hydrationPlan;
         }
 
         /** @var T $object */
-        $object = $reflectionClass->newInstanceWithoutConstructor();
+        $object = $hydrationPlan->reflectionClass->newInstanceWithoutConstructor();
 
-        $classInfo      = $this->classInfoGenerator->getClassInfo($className);
-        $hydrateClosure = $this->getHydratorClosure($className);
+        $hydrateClosure = $hydrationPlan->hydrateClosure;
         $hydrateClosure(
             $objectData,
             $object,
-            $classInfo,
+            $hydrationPlan->classInfo,
             $pathTracker,
         ); // start hydrating
 
-        if ($classInfo->hasValidator) {
+        if ($hydrationPlan->classInfo->hasValidator) {
             /** @var ObjectValidatorInterface&T $object */
             $object->validate($pathTracker);
         }
 
         return $object;
-    }
-
-    /**
-     * @param class-string $className
-     */
-    protected function getHydratorClosure(string $className): Closure
-    {
-        if (isset($this->hydratorClosures[static::HYDRATOR_TYPE][$className])) {
-            return $this->hydratorClosures[static::HYDRATOR_TYPE][$className];
-        }
-
-        $this->hydratorClosures[static::HYDRATOR_TYPE][$className] = $this->createClosure($className);
-
-        return $this->hydratorClosures[static::HYDRATOR_TYPE][$className];
     }
 
     /**
@@ -172,7 +157,7 @@ abstract class AbstractDataToObjectHydrator implements HydratorClosureInterface
                 $result = match ($value) {
                     1, 'true', '1', 'y', 'yes' => true,
                     0, 'false', '0', 'n', 'no' => false,
-                    default => 'unknown',
+                    default                    => 'unknown',
                 };
 
                 if ($result === 'unknown') {

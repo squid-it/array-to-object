@@ -4,6 +4,18 @@ Create an object from array data by mapping provided array keys to corresponding
 
 The array keys must match the names of the object properties.
 
+## Installation
+
+### v3.* (PHP 8.4+)
+```bash
+composer require squidit/array-to-object:^3.0
+```
+
+### v2.* (PHP 8.2 / 8.3)
+```bash
+composer require squidit/array-to-object:^2.0
+```
+
 ## Usage - example (multi dimensional array):
 ```php
 <?php
@@ -252,6 +264,40 @@ class Honda implements ManufacturerInterface
 }
 ```
 
+## Object validation
+If an object needs validation after hydration, implement `SquidIT\Hydrator\Interface\ObjectValidatorInterface`.
+
+The hydrator calls `validate()` after all properties have been hydrated. When validation fails, throw a
+`\SquidIT\Hydrator\Exceptions\ValidationFailureException`. The supplied `PathTracker` can be used to include the
+property path in the exception message, including nested object and array positions.
+
+```php
+use SquidIT\Hydrator\Exceptions\ValidationFailureException;
+use SquidIT\Hydrator\Interface\ObjectValidatorInterface;
+use SquidIT\Hydrator\Property\PathTracker;
+
+class CarWithCustomEngine implements ObjectValidatorInterface
+{
+    public function __construct(
+        public int $engineDisplacementInCc,
+    ) {}
+
+    /**
+     * @throws ValidationFailureException
+     */
+    public function validate(PathTracker $pathTracker): void
+    {
+        if ($this->engineDisplacementInCc < 600 || $this->engineDisplacementInCc > 8000) {
+            $propertyPath = $pathTracker->getPath('engineDisplacementInCc');
+
+            throw new ValidationFailureException(
+                sprintf('Invalid value received for property: %s, value needs to be between 600 and 8000', $propertyPath)
+            );
+        }
+    }
+}
+```
+
 ## Type casting/juggling array vales into object properties
 It is important to note that the hydrator will only work on classes that only contain typed properties.
 If a non typed property is found an `SquidIT\Hydrator\Exceptions\AmbiguousTypeException` exception will be thrown.
@@ -286,6 +332,7 @@ Any integer of string backed enum value
 #### UnionTypes:
 :x: Union types are not supported because we are unable to infer concrete object type implementation.
 
+## Upgrading
 
 ### Update v1.* => V2.*
 Interface change
@@ -293,3 +340,7 @@ Interface change
 Adjust all references:
 * From: \SquidIT\Hydrator\ArrayToObjectHydratorInterface
 * To: \SquidIT\Hydrator\Interface\ArrayToObjectHydratorInterface
+
+### Update v2.* => v3.*
+* Drops support for PHP 8.2 and 8.3, requires PHP 8.4+.
+* Hydration hot path was reworked. Cached/warm hydration benchmarks are roughly 30% faster than v2, and ~40% faster than v2 prior to its mutation-removal patch. No public API changes; existing v2 code keeps working on PHP 8.4+.

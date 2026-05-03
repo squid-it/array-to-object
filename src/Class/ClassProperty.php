@@ -21,5 +21,6 @@ readonly class ClassProperty
         public bool $isBuildIn,
         public bool $allowsNull,
         public ?string $arrayOf,
+        public bool $needsCasting = false,
     ) {}
 }

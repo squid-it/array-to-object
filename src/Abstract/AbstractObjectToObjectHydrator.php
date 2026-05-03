@@ -25,8 +25,6 @@ use function sprintf;
 
 abstract class AbstractObjectToObjectHydrator extends AbstractDataToObjectHydrator implements DtoToObjectHydratorInterface
 {
-    protected const HYDRATOR_TYPE = 'object';
-
     /**
      * @param class-string $className
      */
@@ -36,8 +34,21 @@ abstract class AbstractObjectToObjectHydrator extends AbstractDataToObjectHydrat
         $closure  = Closure::bind(
             static function (object $sourceData, object $object, ClassInfo $classInfo, PathTracker $pathTracker) use ($hydrator) {
                 foreach ($classInfo->classPropertyList as $propertyName => $classProperty) {
-                    $value = $hydrator->getPropertyValue($sourceData, $propertyName, $classProperty, $pathTracker);
-                    $value = $hydrator->castValue($value, $classProperty, $pathTracker);
+                    // resolve property value (inlined getPropertyValue, isset fast path)
+                    if (isset($sourceData->{$propertyName})) {
+                        $value = $sourceData->{$propertyName};
+                    } elseif (property_exists($sourceData, $propertyName)) {
+                        // property is initialized but null (or uninitialized typed -> Error, same as before)
+                        $value = $sourceData->{$propertyName};
+                    } elseif ($classProperty->hasDefaultValue) {
+                        $value = $classProperty->defaultValue;
+                    } else {
+                        $hydrator->throwMissingPropertyValue($classProperty, $pathTracker);
+                    }
+
+                    if ($classProperty->needsCasting) {
+                        $value = $hydrator->castValue($value, $classProperty, $pathTracker);
+                    }
 
                     // hydrate nested objects or array of objects
                     if (is_array($value) || (is_object($value) && ($value instanceof UnitEnum) === false)) {
@@ -52,11 +63,34 @@ abstract class AbstractObjectToObjectHydrator extends AbstractDataToObjectHydrat
             $className
         );
 
-        if (!($closure instanceof Closure)) {
+        if (!$closure instanceof Closure) {
             throw new RuntimeException('Unable to create Closure for: ' . $className);
         }
 
         return $closure;
+    }
+
+    /**
+     * @throws MissingPropertyValueException
+     * @throws ReflectionException
+     */
+    public function throwMissingPropertyValue(ClassProperty $classProperty, PathTracker $pathTracker): never
+    {
+        if ($this->useEndUserSafeErrorMsg) {
+            $msg = sprintf(
+                'Path: %s - no data supplied for required property',
+                $pathTracker->getPath($classProperty->name),
+            );
+        } else {
+            $msg = sprintf(
+                'Could not hydrate object: "%s", supplied object does not contain property: "%s" (%s)',
+                (new ReflectionClass($classProperty->className))->getName(),
+                $classProperty->name,
+                $pathTracker->getPath($classProperty->name),
+            );
+        }
+
+        throw new MissingPropertyValueException($msg);
     }
 
     /**

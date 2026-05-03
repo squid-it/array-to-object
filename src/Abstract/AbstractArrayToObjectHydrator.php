@@ -23,8 +23,6 @@ use function sprintf;
 
 abstract class AbstractArrayToObjectHydrator extends AbstractDataToObjectHydrator implements ArrayToObjectHydratorInterface
 {
-    protected const HYDRATOR_TYPE = 'array';
-
     /**
      * @param class-string $className
      */
@@ -34,8 +32,20 @@ abstract class AbstractArrayToObjectHydrator extends AbstractDataToObjectHydrato
         $closure  = Closure::bind(
             static function (array $data, object $object, ClassInfo $classInfo, PathTracker $pathTracker) use ($hydrator) {
                 foreach ($classInfo->classPropertyList as $propertyName => $classProperty) {
-                    $value = $hydrator->getPropertyValue($data, $propertyName, $classProperty, $pathTracker);
-                    $value = $hydrator->castValue($value, $classProperty, $pathTracker);
+                    // resolve property value (inlined getPropertyValue, isset fast path)
+                    if (isset($data[$propertyName])) {
+                        $value = $data[$propertyName];
+                    } elseif (array_key_exists($propertyName, $data)) {
+                        $value = null;
+                    } elseif ($classProperty->hasDefaultValue) {
+                        $value = $classProperty->defaultValue;
+                    } else {
+                        $hydrator->throwMissingPropertyValue($classProperty, $pathTracker);
+                    }
+
+                    if ($classProperty->needsCasting) {
+                        $value = $hydrator->castValue($value, $classProperty, $pathTracker);
+                    }
 
                     // hydrate nested objects or array of objects
                     if (is_array($value)) {
@@ -50,11 +60,34 @@ abstract class AbstractArrayToObjectHydrator extends AbstractDataToObjectHydrato
             $className
         );
 
-        if (!($closure instanceof Closure)) {
+        if (!$closure instanceof Closure) {
             throw new RuntimeException('Unable to create Closure for: ' . $className);
         }
 
         return $closure;
+    }
+
+    /**
+     * @throws MissingPropertyValueException
+     * @throws ReflectionException
+     */
+    public function throwMissingPropertyValue(ClassProperty $classProperty, PathTracker $pathTracker): never
+    {
+        if ($this->useEndUserSafeErrorMsg) {
+            $msg = sprintf(
+                'Path: %s - no data supplied for required property',
+                $pathTracker->getPath($classProperty->name),
+            );
+        } else {
+            $msg = sprintf(
+                'Could not hydrate object: "%s", no property data provided for: "%s" (%s)',
+                (new ReflectionClass($classProperty->className))->getShortName(),
+                $classProperty->name,
+                $pathTracker->getPath($classProperty->name),
+            );
+        }
+
+        throw new MissingPropertyValueException($msg);
     }
 
     /**
@@ -67,7 +100,7 @@ abstract class AbstractArrayToObjectHydrator extends AbstractDataToObjectHydrato
      * @throws ReflectionException
      */
     public function getPropertyValue(
-        array &$data,
+        array $data,
         string $propertyName,
         ClassProperty $classProperty,
         PathTracker $pathTracker,
@@ -92,10 +125,7 @@ abstract class AbstractArrayToObjectHydrator extends AbstractDataToObjectHydrato
             throw new MissingPropertyValueException($msg);
         }
 
-        $value = $hasPropertyDataInArray ? $data[$propertyName] : $classProperty->defaultValue;
-        unset($data[$propertyName]); // speedup future array_key_exist calls
-
-        return $value;
+        return $hasPropertyDataInArray ? $data[$propertyName] : $classProperty->defaultValue;
     }
 
     /**
