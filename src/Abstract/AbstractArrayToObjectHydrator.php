@@ -23,7 +23,7 @@ use function sprintf;
 
 abstract class AbstractArrayToObjectHydrator extends AbstractDataToObjectHydrator implements ArrayToObjectHydratorInterface
 {
-    protected const HYDRATOR_TYPE = 'array';
+    protected const string HYDRATOR_TYPE = 'array';
 
     /**
      * @param class-string $className
@@ -50,7 +50,7 @@ abstract class AbstractArrayToObjectHydrator extends AbstractDataToObjectHydrato
             $className
         );
 
-        if (!($closure instanceof Closure)) {
+        if (!$closure instanceof Closure) {
             throw new RuntimeException('Unable to create Closure for: ' . $className);
         }
 
@@ -67,7 +67,7 @@ abstract class AbstractArrayToObjectHydrator extends AbstractDataToObjectHydrato
      * @throws ReflectionException
      */
     public function getPropertyValue(
-        array &$data,
+        array $data,
         string $propertyName,
         ClassProperty $classProperty,
         PathTracker $pathTracker,
@@ -92,10 +92,7 @@ abstract class AbstractArrayToObjectHydrator extends AbstractDataToObjectHydrato
             throw new MissingPropertyValueException($msg);
         }
 
-        $value = $hasPropertyDataInArray ? $data[$propertyName] : $classProperty->defaultValue;
-        unset($data[$propertyName]); // speedup future array_key_exist calls
-
-        return $value;
+        return $hasPropertyDataInArray ? $data[$propertyName] : $classProperty->defaultValue;
     }
 
     /**

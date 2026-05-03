@@ -172,7 +172,7 @@ abstract class AbstractDataToObjectHydrator implements HydratorClosureInterface
                 $result = match ($value) {
                     1, 'true', '1', 'y', 'yes' => true,
                     0, 'false', '0', 'n', 'no' => false,
-                    default => 'unknown',
+                    default                    => 'unknown',
                 };
 
                 if ($result === 'unknown') {

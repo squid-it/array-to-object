@@ -25,7 +25,7 @@ use function sprintf;
 
 abstract class AbstractObjectToObjectHydrator extends AbstractDataToObjectHydrator implements DtoToObjectHydratorInterface
 {
-    protected const HYDRATOR_TYPE = 'object';
+    protected const string HYDRATOR_TYPE = 'object';
 
     /**
      * @param class-string $className
@@ -52,7 +52,7 @@ abstract class AbstractObjectToObjectHydrator extends AbstractDataToObjectHydrat
             $className
         );
 
-        if (!($closure instanceof Closure)) {
+        if (!$closure instanceof Closure) {
             throw new RuntimeException('Unable to create Closure for: ' . $className);
         }
 
