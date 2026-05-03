@@ -38,16 +38,12 @@
   "require-dev": {
     "ext-simdjson": "*",
     "squidit/php-coding-standards": "^2.0",
-    "friendsofphp/php-cs-fixer": "^3.75",
+    "friendsofphp/php-cs-fixer": "^3.85",
     "phpbench/phpbench": "^1.6.1",
     "phpstan/phpstan": "^2.1",
-    "phpunit/phpunit": "^12.5"
+    "phpunit/phpunit": "^12.5 || ^13.0"
   },
   "scripts": {
-    "benchmark:check-env": [
-      "@putenv XDEBUG_MODE=off",
-      "php -r \"echo 'XDEBUG_MODE=' . getenv('XDEBUG_MODE') . PHP_EOL; if (function_exists('xdebug_info')) { xdebug_info(); }\""
-    ],
     "benchmark": [
       "@putenv XDEBUG_MODE=off",
       "phpbench run tests/Benchmark --report=aggregate --retry-threshold=5"
