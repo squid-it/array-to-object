@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SquidIT\Hydrator\Class;
 
+use DateTimeImmutable;
 use DateTimeInterface;
 use ReflectionClass;
 use ReflectionEnum;
@@ -105,6 +106,20 @@ class ClassInfoGenerator
                 $isBuildIn = true;
             }
 
+            // Pre-compute whether castValue() needs to run for this property at all.
+            // Mirrors the cases handled by AbstractDataToObjectHydrator::castValue():
+            //   - 'int' / 'bool' coercion
+            //   - DateTimeImmutable string -> object
+            //   - backed enum from int|string
+            //   - non-built-in object property whose default value is an instance to clone
+            $needsCasting = (
+                $type === 'int'
+                || $type === 'bool'
+                || $type === DateTimeImmutable::class
+                || $isBackedEnum
+                || ($isBuildIn === false && $propertyDefault->hasDefaultValue === true)
+            );
+
             $result[$propertyName] = new ClassProperty(
                 $className,
                 $propertyName,
@@ -115,6 +130,7 @@ class ClassInfoGenerator
                 $isBuildIn,
                 $allowsNull,
                 $propertyArrayOf,
+                $needsCasting,
             );
         }
 

@@ -8,6 +8,7 @@ use Closure;
 use DateTimeImmutable;
 use ReflectionClass;
 use ReflectionException;
+use SquidIT\Hydrator\Class\ClassInfo;
 use SquidIT\Hydrator\Class\ClassInfoGenerator;
 use SquidIT\Hydrator\Class\ClassProperty;
 use SquidIT\Hydrator\Exceptions\AmbiguousTypeException;
@@ -30,15 +31,10 @@ use function sprintf;
 
 abstract class AbstractDataToObjectHydrator implements HydratorClosureInterface
 {
-    protected const HYDRATOR_TYPE = 'unknown';
-
     protected ClassInfoGenerator $classInfoGenerator;
 
-    /** @var array<string, array<class-string, Closure>> */
-    protected array $hydratorClosures = [];
-
-    /** @var array<class-string, ReflectionClass> */
-    protected array $reflectionClasses = [];
+    /** @var array<class-string, array{0: ClassInfo, 1: Closure, 2: ReflectionClass}> */
+    protected array $compiledCache = [];
 
     /** @var bool when true, it this library will return end-user safe error messages */
     protected bool $useEndUserSafeErrorMsg;
@@ -67,18 +63,19 @@ abstract class AbstractDataToObjectHydrator implements HydratorClosureInterface
         string $className,
         PathTracker $pathTracker = new PathTracker(),
     ): object {
-        if (isset($this->reflectionClasses[$className])) {
-            $reflectionClass = $this->reflectionClasses[$className];
+        if (isset($this->compiledCache[$className])) {
+            [$classInfo, $hydrateClosure, $reflectionClass] = $this->compiledCache[$className];
         } else {
-            $reflectionClass                     = new ReflectionClass($className);
-            $this->reflectionClasses[$className] = $reflectionClass;
+            $reflectionClass = new ReflectionClass($className);
+            $classInfo       = $this->classInfoGenerator->getClassInfo($className);
+            $hydrateClosure  = $this->createClosure($className);
+
+            $this->compiledCache[$className] = [$classInfo, $hydrateClosure, $reflectionClass];
         }
 
         /** @var T $object */
         $object = $reflectionClass->newInstanceWithoutConstructor();
 
-        $classInfo      = $this->classInfoGenerator->getClassInfo($className);
-        $hydrateClosure = $this->getHydratorClosure($className);
         $hydrateClosure(
             $objectData,
             $object,
@@ -92,20 +89,6 @@ abstract class AbstractDataToObjectHydrator implements HydratorClosureInterface
         }
 
         return $object;
-    }
-
-    /**
-     * @param class-string $className
-     */
-    protected function getHydratorClosure(string $className): Closure
-    {
-        if (isset($this->hydratorClosures[static::HYDRATOR_TYPE][$className])) {
-            return $this->hydratorClosures[static::HYDRATOR_TYPE][$className];
-        }
-
-        $this->hydratorClosures[static::HYDRATOR_TYPE][$className] = $this->createClosure($className);
-
-        return $this->hydratorClosures[static::HYDRATOR_TYPE][$className];
     }
 
     /**
