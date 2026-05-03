@@ -4,6 +4,18 @@ Create an object from array data by mapping provided array keys to corresponding
 
 The array keys must match the names of the object properties.
 
+## Installation
+
+### v3.* (PHP 8.4+)
+```bash
+composer require squidit/array-to-object:^3.0
+```
+
+### v2.* (PHP 8.2 / 8.3)
+```bash
+composer require squidit/array-to-object:^2.0
+```
+
 ## Usage - example (multi dimensional array):
 ```php
 <?php
@@ -293,3 +305,7 @@ Interface change
 Adjust all references:
 * From: \SquidIT\Hydrator\ArrayToObjectHydratorInterface
 * To: \SquidIT\Hydrator\Interface\ArrayToObjectHydratorInterface
+
+### Update v2.* => v3.*
+* Drops support for PHP 8.2 and 8.3, requires PHP 8.4+.
+* Hydration hot path was reworked. Cached/warm hydration benchmarks are roughly 30% faster than v2, and ~40% faster than v2 prior to its mutation-removal patch. No public API changes; existing v2 code keeps working on PHP 8.4+.
