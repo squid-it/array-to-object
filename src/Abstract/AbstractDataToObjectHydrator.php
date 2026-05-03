@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace SquidIT\Hydrator\Abstract;
 
-use Closure;
 use DateTimeImmutable;
 use ReflectionClass;
 use ReflectionException;
-use SquidIT\Hydrator\Class\ClassInfo;
 use SquidIT\Hydrator\Class\ClassInfoGenerator;
 use SquidIT\Hydrator\Class\ClassProperty;
+use SquidIT\Hydrator\Class\HydrationPlan;
 use SquidIT\Hydrator\Exceptions\AmbiguousTypeException;
 use SquidIT\Hydrator\Exceptions\InvalidPathTrackerPositionException;
 use SquidIT\Hydrator\Exceptions\MissingPropertyValueException;
@@ -33,8 +32,8 @@ abstract class AbstractDataToObjectHydrator implements HydratorClosureInterface
 {
     protected ClassInfoGenerator $classInfoGenerator;
 
-    /** @var array<class-string, array{0: ClassInfo, 1: Closure, 2: ReflectionClass}> */
-    protected array $compiledCache = [];
+    /** @var array<class-string, HydrationPlan> */
+    protected array $hydrationPlanList = [];
 
     /** @var bool when true, it this library will return end-user safe error messages */
     protected bool $useEndUserSafeErrorMsg;
@@ -63,27 +62,30 @@ abstract class AbstractDataToObjectHydrator implements HydratorClosureInterface
         string $className,
         PathTracker $pathTracker = new PathTracker(),
     ): object {
-        if (isset($this->compiledCache[$className])) {
-            [$classInfo, $hydrateClosure, $reflectionClass] = $this->compiledCache[$className];
+        if (isset($this->hydrationPlanList[$className])) {
+            $hydrationPlan = $this->hydrationPlanList[$className];
         } else {
-            $reflectionClass = new ReflectionClass($className);
-            $classInfo       = $this->classInfoGenerator->getClassInfo($className);
-            $hydrateClosure  = $this->createClosure($className);
+            $hydrationPlan = new HydrationPlan(
+                $this->classInfoGenerator->getClassInfo($className),
+                $this->createClosure($className),
+                new ReflectionClass($className),
+            );
 
-            $this->compiledCache[$className] = [$classInfo, $hydrateClosure, $reflectionClass];
+            $this->hydrationPlanList[$className] = $hydrationPlan;
         }
 
         /** @var T $object */
-        $object = $reflectionClass->newInstanceWithoutConstructor();
+        $object = $hydrationPlan->reflectionClass->newInstanceWithoutConstructor();
 
+        $hydrateClosure = $hydrationPlan->hydrateClosure;
         $hydrateClosure(
             $objectData,
             $object,
-            $classInfo,
+            $hydrationPlan->classInfo,
             $pathTracker,
         ); // start hydrating
 
-        if ($classInfo->hasValidator) {
+        if ($hydrationPlan->classInfo->hasValidator) {
             /** @var ObjectValidatorInterface&T $object */
             $object->validate($pathTracker);
         }
