@@ -1,8 +1,10 @@
 # Object Hydrator
 
-Create an object from array data by mapping provided array keys to corresponding typed class property names.
+Hydrate typed objects from associative arrays, dotted arrays, or DTO-like source objects by mapping input keys or
+property names to corresponding typed target properties. The library also includes a helper base class for
+DTO-to-JSON output.
 
-The array keys must match the names of the object properties.
+The supplied keys or source-object property names must match the names of the target object properties.
 
 ## Installation
 
@@ -212,6 +214,65 @@ object(SquidIT\Hydrator\Tests\Unit\ExampleObjects\Car\Complete\CarComplete)#6 (9
 }
 ```
 
+If you only need to convert dotted keys into a nested array, use `DotNotationToMultiDimensional` directly:
+
+```php
+use SquidIT\Hydrator\DotNotationToMultiDimensional;
+
+$dotNotationToMultiDimensional = new DotNotationToMultiDimensional($dataDotNotationJavascript);
+$nestedData                    = $dotNotationToMultiDimensional->convert();
+```
+
+Pass `DotNotationFormat::EXPLODE` as the second constructor argument when using explode-style dotted keys.
+
+## Usage - example (DTO/object input):
+
+When the source data already arrives as an object, use `DtoToObject`. The source-object property names must match the
+target-object property names. Nested hydration and type casting work the same way as with array input.
+
+```php
+<?php
+
+declare(strict_types=1);
+
+use SquidIT\Hydrator\Class\ClassInfoGenerator;
+use SquidIT\Hydrator\DtoToObject;
+
+final class CarInputDto
+{
+    public function __construct(
+        public string $color,
+        public int $nrOfDoors,
+    ) {}
+}
+
+final class CarSummary
+{
+    public function __construct(
+        public string $color,
+        public int $nrOfDoors,
+    ) {}
+}
+
+$sourceDto = new CarInputDto('black', 4);
+$hydrator  = new DtoToObject(new ClassInfoGenerator());
+
+$carSummary = $hydrator->hydrate($sourceDto, CarSummary::class);
+```
+
+## Hydrating multiple objects
+
+`ArrayToObject`, `DotNotationArrayToObject`, and `DtoToObject` all provide `hydrateMulti()` for indexed lists of
+source records:
+
+```php
+$arrayHydrator = new ArrayToObject(new ClassInfoGenerator());
+$dtoHydrator   = new DtoToObject(new ClassInfoGenerator());
+
+$carCompleteList = $arrayHydrator->hydrateMulti([$data, $data], CarComplete::class);
+$carSummaryList  = $dtoHydrator->hydrateMulti([$sourceDto, $sourceDto], CarSummary::class);
+```
+
 ## Nested objects
 If a class property contains a nested object, the hydrator can infer the object type by reading the property type.
 
@@ -264,6 +325,30 @@ class Honda implements ManufacturerInterface
 }
 ```
 
+## Default values
+
+When input omits a property, the hydrator uses the target object's default value when one exists. Defaults can come
+from constructor-promoted properties or regular declared properties.
+
+```php
+final class Car
+{
+    public function __construct(
+        public string $color,
+        public bool $isInsured = true,
+    ) {}
+}
+```
+
+Object defaults are cloned during hydration, so each hydrated object receives its own default object instance instead
+of sharing mutable state with other hydrated objects.
+
+## Hydration lifecycle
+
+Target objects are created without executing the constructor body, then their typed properties are assigned directly.
+This means reflected default values are honored, but constructor side effects and constructor-only validation logic do
+not run during hydration. Use `ObjectValidatorInterface` for checks that must happen after hydration.
+
 ## Object validation
 If an object needs validation after hydration, implement `SquidIT\Hydrator\Interface\ObjectValidatorInterface`.
 
@@ -298,7 +383,71 @@ class CarWithCustomEngine implements ObjectValidatorInterface
 }
 ```
 
-## Type casting/juggling array vales into object properties
+## User-safe error messages
+
+By default, hydration errors include implementation detail that is useful for developers. If the message may reach an
+end user, enable safe error messages when creating the hydrator:
+
+```php
+use SquidIT\Hydrator\ArrayToObject;
+use SquidIT\Hydrator\Class\ClassInfoGenerator;
+use SquidIT\Hydrator\DotNotationArrayToObject;
+use SquidIT\Hydrator\DtoToObject;
+use SquidIT\Hydrator\Property\DotNotationFormat;
+
+$arrayHydrator       = new ArrayToObject(new ClassInfoGenerator(), true);
+$dtoHydrator         = new DtoToObject(new ClassInfoGenerator(), true);
+$dotNotationHydrator = new DotNotationArrayToObject(
+    new ClassInfoGenerator(),
+    DotNotationFormat::JAVASCRIPT,
+    true,
+);
+```
+
+With safe messages enabled, a missing nested value is reported using a user-facing property path, for example:
+`Path: manufacturer.employeeList[0].employeeName - no data supplied for required property`.
+
+## DTO to JSON output
+
+When a DTO needs predictable JSON output, extend `SquidIT\Hydrator\Abstract\AbstractObjectToDto`.
+This abstract class is specifically intended to help DTOs prepare JSON-friendly output through PHP's
+`JsonSerializable` flow.
+
+Public and protected properties are included automatically. `DateTimeImmutable` values are formatted as
+`Y-m-d\TH:i:s.u`, backed enums are converted to their scalar values, and private properties are excluded.
+
+```php
+<?php
+
+declare(strict_types=1);
+
+use DateTimeImmutable;
+use SquidIT\Hydrator\Abstract\AbstractObjectToDto;
+
+final class CarDto extends AbstractObjectToDto
+{
+    public function __construct(
+        public string $color,
+        public DateTimeImmutable $createdAt,
+    ) {}
+}
+
+$carDto = new CarDto('black', new DateTimeImmutable('2026-05-18 12:34:56.123456'));
+
+echo json_encode($carDto, JSON_THROW_ON_ERROR);
+// {"color":"black","createdAt":"2026-05-18T12:34:56.123456"}
+```
+
+If a DTO needs a different JSON date format, override the protected format constant:
+
+```php
+final class PublicCarDto extends AbstractObjectToDto
+{
+    protected const string DATE_TIME_FORMAT = 'Y-m-d';
+}
+```
+
+## Type casting/juggling array values into object properties
 It is important to note that the hydrator will only work on classes that only contain typed properties.
 If a non typed property is found an `SquidIT\Hydrator\Exceptions\AmbiguousTypeException` exception will be thrown.
 
