@@ -37,7 +37,7 @@
   },
   "require-dev": {
     "ext-simdjson": "*",
-    "squidit/php-coding-standards": "^2.0",
+    "squidit/php-coding-standards": "^3.0",
     "friendsofphp/php-cs-fixer": "^3.85",
     "phpbench/phpbench": "^1.6.1",
     "phpstan/phpstan": "^2.1",
