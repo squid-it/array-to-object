@@ -415,6 +415,8 @@ This abstract class is specifically intended to help DTOs prepare JSON-friendly 
 
 Public and protected properties are included automatically. `DateTimeImmutable` values are formatted as
 `Y-m-d\TH:i:s.u`, backed enums are converted to their scalar values, and private properties are excluded.
+Use `toArray()` when you need a deep nested array without embedded DTO objects; `jsonSerialize()` delegates
+to the same conversion.
 
 ```php
 <?php
@@ -436,6 +438,9 @@ $carDto = new CarDto('black', new DateTimeImmutable('2026-05-18 12:34:56.123456'
 
 echo json_encode($carDto, JSON_THROW_ON_ERROR);
 // {"color":"black","createdAt":"2026-05-18T12:34:56.123456"}
+
+$carDto->toArray();
+// ['color' => 'black', 'createdAt' => '2026-05-18T12:34:56.123456']
 ```
 
 If a DTO needs a different JSON date format, override the protected format constant:
