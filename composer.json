@@ -41,7 +41,7 @@
     "friendsofphp/php-cs-fixer": "^3.85",
     "phpbench/phpbench": "^1.6.1",
     "phpstan/phpstan": "^2.1",
-    "phpunit/phpunit": "^12.5 || ^13.0"
+    "phpunit/phpunit": "^12.5 || ^13.1"
   },
   "scripts": {
     "benchmark": [
