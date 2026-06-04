@@ -6,8 +6,6 @@ namespace SquidIT\Hydrator\Tests\Unit\Abstract;
 
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
-use ReflectionClass;
-use SquidIT\Hydrator\Abstract\AbstractObjectToDto;
 use SquidIT\Hydrator\ArrayToObject;
 use SquidIT\Hydrator\Class\ClassInfoGenerator;
 use SquidIT\Hydrator\Tests\Fixtures\Abstract\BenchmarkCarDto;
@@ -210,11 +208,8 @@ class AbstractObjectToDtoTest extends TestCase
     /**
      * @throws Throwable
      */
-    public function testToArrayCachesIndependentPropertyNameListsSucceeds(): void
+    public function testToArrayKeepsIndependentPropertyNameListsPerDtoClassSucceeds(): void
     {
-        $cacheProperty = (new ReflectionClass(AbstractObjectToDto::class))->getProperty('propertyNameListByClassName');
-        $cacheProperty->setValue(null, []);
-
         $exampleDto = new ExampleDto(
             'example',
             new DateTimeImmutable('2026-05-18 12:34:56.123456'),
@@ -224,16 +219,24 @@ class AbstractObjectToDtoTest extends TestCase
         );
         $benchmarkEmployeeDto = new BenchmarkEmployeeDto('cecil', BenchmarkDtoState::Ready);
 
-        $exampleDto->toArray();
-        $firstCacheData = $cacheProperty->getValue();
+        $exampleData = $exampleDto->toArray();
 
-        $exampleDto->toArray();
-        self::assertSame($firstCacheData, $cacheProperty->getValue());
-
-        $benchmarkEmployeeDto->toArray();
-        $cacheData = $cacheProperty->getValue();
-
-        self::assertSame(['name', 'createdAt', 'state', 'description'], $cacheData[ExampleDto::class]);
-        self::assertSame(['employeeName', 'state'], $cacheData[BenchmarkEmployeeDto::class]);
+        self::assertSame($exampleData, $exampleDto->toArray());
+        self::assertSame(
+            [
+                'name'        => 'example',
+                'createdAt'   => '2026-05-18T12:34:56.123456',
+                'state'       => 'ready',
+                'description' => null,
+            ],
+            $exampleData,
+        );
+        self::assertSame(
+            [
+                'employeeName' => 'cecil',
+                'state'        => 'ready',
+            ],
+            $benchmarkEmployeeDto->toArray(),
+        );
     }
 }

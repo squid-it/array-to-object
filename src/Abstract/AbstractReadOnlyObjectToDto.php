@@ -7,7 +7,7 @@ namespace SquidIT\Hydrator\Abstract;
 use SquidIT\Hydrator\Dto\Interface\ObjectToDtoInterface;
 use SquidIT\Hydrator\Dto\Trait\ObjectToDtoTrait;
 
-abstract class AbstractObjectToDto implements ObjectToDtoInterface
+abstract readonly class AbstractReadOnlyObjectToDto implements ObjectToDtoInterface
 {
     use ObjectToDtoTrait;
 }

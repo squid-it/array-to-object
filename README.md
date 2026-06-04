@@ -410,7 +410,10 @@ With safe messages enabled, a missing nested value is reported using a user-faci
 ## DTO to JSON output
 
 When a DTO needs predictable JSON output, extend `SquidIT\Hydrator\Abstract\AbstractObjectToDto`.
-This abstract class is specifically intended to help DTOs prepare JSON-friendly output through PHP's
+If the DTO class must be declared `readonly`, extend
+`SquidIT\Hydrator\Abstract\AbstractReadOnlyObjectToDto` instead. PHP only allows a readonly class to extend another
+readonly class, and both abstract classes provide the same `toArray()` and `jsonSerialize()` behavior.
+These abstract classes are specifically intended to help DTOs prepare JSON-friendly output through PHP's
 `JsonSerializable` flow.
 
 Public and protected properties are included automatically. `DateTimeImmutable` values are formatted as
@@ -441,6 +444,21 @@ echo json_encode($carDto, JSON_THROW_ON_ERROR);
 
 $carDto->toArray();
 // ['color' => 'black', 'createdAt' => '2026-05-18T12:34:56.123456']
+```
+
+Readonly DTOs use the readonly base class:
+
+```php
+use DateTimeImmutable;
+use SquidIT\Hydrator\Abstract\AbstractReadOnlyObjectToDto;
+
+final readonly class ReadOnlyCarDto extends AbstractReadOnlyObjectToDto
+{
+    public function __construct(
+        public string $color,
+        public DateTimeImmutable $createdAt,
+    ) {}
+}
 ```
 
 If a DTO needs a different JSON date format, override the protected format constant:
